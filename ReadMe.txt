@@ -15,7 +15,7 @@ where python    # Version python et localisation sur ordi.
 
 # 1 Environnement  -----------------------------------------------------------------
 python -m venv myenv
-myenv\Scripts\activate      
+myenv\Scripts\activate       # Environnement
 
 # 2 Git Ignore ---------------------------------------------------------------------
 
@@ -44,24 +44,6 @@ pip install -r requirements.txt
 pip install bleak --force-reinstall
 pip install visions[type_image_path]==0.7.4
 pip install --upgrade pip
-
-# Créez une nouvelle branche pour une fonctionnalité
-git checkout -b feature/ajout-page-meteo
-
-# Faites vos changements, puis ajoutez et commettez les modifications
-git add .
-git commit -m "Ajout de la page météo"
-
-# Une fois votre travail terminé, revenez à la branche principale
-git checkout main
-
-# Fusionnez votre branche dans la branche principale
-git merge feature/ajout-page-meteo
-
-# Poussez les modifications vers le dépôt distant
-git push origin main
-
-
 
 
 #------------------------------------------------------------------
