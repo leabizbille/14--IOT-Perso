@@ -5,6 +5,7 @@ __pycache__/
 
 # Environnement virtuel
 myenv/
+.env
 
 # Fichiers liés à l'IDE
 .vscode/
