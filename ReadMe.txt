@@ -11,13 +11,11 @@ netstat -ano | findstr :8000
 Mon Adresse IPv4 192.168.0.105
 
 
-
-
-# 1 Environnement  -----------------------------------------------------------------
+# 1. Environnement  ----------------------------------------------------------------
 python -m venv myenv
 myenv\Scripts\activate       # Environnement
 
-# 2 Git Ignore ---------------------------------------------------------------------
+# 2. Git Ignore --------------------------------------------------------------------
 
 # 3. Git ---------------------------------------------------------------------------
 # Créez une nouvelle branche pour une fonctionnalité
@@ -86,12 +84,18 @@ pip install --upgrade pip
 
 
 pip list # Pour connaitre l'ensemble des packages dans le requirements.
-pip freeze > requirements_Sauvegarde.txt # Pour connaitre exactements les packages sans modifier le requiements utilisé actuellement.
+pip freeze > 1-Documents/requirements_Sauvegarde.txt # Pour connaitre exactements les packages sans modifier le requiements utilisé actuellement.
+
+# 5. .env--------------------------------------------------------------------------------
+
+* Installer python-dotenv dans mon environnement myenv :
+myenv\Scripts\pip install python-dotenv  # Windows
+
 
 #------------------------------------------------------------------
 python govee-h5075.py -m      # récuperation des data températures et modules
 python govee-h5075.py -s
-
+python Meteo.py
 #------------------------------------------------------------------
 # Pour mettre en fonction streamlit 
 streamlit run Streamlit_BaseBatiment.py
