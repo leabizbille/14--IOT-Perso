@@ -2,11 +2,7 @@ import sqlite3
 from dotenv import load_dotenv
 import os
 import pandas as pd
-
-load_dotenv()
-base_bd = os.getenv("NOM_BASE")
-conn = sqlite3.connect("base_bd", check_same_thread=False)
-
+from utils.functionsBDD import creer_table_city_info,creer_table_weather,insert_or_update_city_info, insert_weather_data
 from geopy.geocoders import Nominatim
 from geopy.exc import GeocoderTimedOut, GeocoderServiceError
 import openmeteo_requests
@@ -14,7 +10,33 @@ import requests_cache
 from retry_requests import retry
 from requests.adapters import RetryError
 from datetime import datetime
+from dotenv import load_dotenv
 
+#______________________________________________________________
+
+# Charger les variables d'environnement - Aller chercher le fichier .env dans le dossier parent (racine du projet)
+dotenv_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), ".env")
+#load_dotenv(dotenv_path=os.path.abspath(dotenv_path))
+load_dotenv(dotenv_path=dotenv_path, override=True)
+
+base_bd = os.getenv("NOM_BASE")
+#print(f"Chemin absolu du fichier .env : {dotenv_path}")
+#print(f"Valeur de NOM_BASE : {base_bd}")
+#print(f"Existe-t-il ? {os.path.exists(base_bd)}")
+
+# Récupérer le nom de la base de données correctement
+base_bd = os.getenv("NOM_BASE")
+conn = sqlite3.connect(base_bd, check_same_thread=False)
+url_Meteo = os.getenv("URL_METEO")
+
+# Vérifier si la variable est bien chargée
+#print(f"Nom de la base récupérée : {base_bd}")  # Debug
+#print(f"Chemin du fichier .env : {dotenv_path}")  # Debug
+#print(f"Contenu de NOM_BASE : {os.getenv('NOM_BASE')}")  # Debug
+
+if base_bd is None:
+    raise ValueError("Erreur : la variable d'environnement NOM_BASE n'est pas définie.")
+#______________________________________________________________
 
 def get_Historical_weather_data(ville, start_date, end_date):
     """
@@ -38,7 +60,7 @@ def get_Historical_weather_data(ville, start_date, end_date):
             return None
 
         latitude, longitude = localisation.latitude, localisation.longitude
-        print(f"Coordonnées pour {ville} : Latitude {latitude}, Longitude {longitude}")
+        #print(f"Coordonnées pour {ville} : Latitude {latitude}, Longitude {longitude}")
 
         # Étape 2 : Configuration du client Open-Meteo avec cache et gestion des erreurs
         cache_session = requests_cache.CachedSession('.cache', expire_after=-1)
@@ -46,7 +68,7 @@ def get_Historical_weather_data(ville, start_date, end_date):
         openmeteo = openmeteo_requests.Client(session=retry_session)  # Utilisation du client correct
 
         # Étape 3 : Définition des paramètres pour l'API Open-Meteo
-        url = "https://archive-api.open-meteo.com/v1/archive"
+        url = url_Meteo
         params = {
             "latitude": latitude,
             "longitude": longitude,
@@ -95,53 +117,10 @@ def get_Historical_weather_data(ville, start_date, end_date):
         # Convertir la colonne 'date' en format chaîne de caractères
         hourly_dataframe['date'] = hourly_dataframe['date'].dt.strftime('%Y-%m-%d %H:%M:%S')
 
-        # Création de la base de données SQLite et des tables
-        conn = sqlite3.connect('MaBase.db')
-        cursor = conn.cursor()
-
-        # Création de la table city_info avec 'ville' comme clé primaire
-        cursor.execute('''
-        CREATE TABLE IF NOT EXISTS city_info (
-            ville TEXT PRIMARY KEY,
-            latitude REAL,
-            longitude REAL
-        )''')
-
-        # Création de la table weather, avec une colonne 'ville' comme clé étrangère référencée dans 'city_info'
-        cursor.execute('''
-        CREATE TABLE IF NOT EXISTS weather (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            date TEXT,
-            ville TEXT,
-            temperature_2m REAL,
-            relative_humidity_2m REAL,
-            rain REAL,
-            snowfall REAL,
-            cloud_cover REAL,
-            et0_fao_evapotranspiration REAL,
-            wind_speed_10m REAL,
-            wind_direction_10m REAL,
-            soil_temperature_0_to_7cm REAL,
-            FOREIGN KEY (ville) REFERENCES city_info(ville)
-            UNIQUE (date, ville)
-        )''')
-
-        # Insertion ou mise à jour des données géographiques dans city_info
-        cursor.execute('''
-        INSERT OR REPLACE INTO city_info (ville, latitude, longitude) 
-        VALUES (?, ?, ?)''', 
-        (ville, latitude, longitude))
-
-        # Insertion des données météo dans la table weather, avec la ville directement
-        for index, row in hourly_dataframe.iterrows():
-            cursor.execute(''' 
-            INSERT INTO weather (date, ville, temperature_2m, relative_humidity_2m, rain, snowfall, cloud_cover, 
-                                 et0_fao_evapotranspiration, wind_speed_10m, wind_direction_10m, soil_temperature_0_to_7cm)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''', 
-            (row['date'], ville, row['temperature_2m'], row['relative_humidity_2m'], row['rain'], row['snowfall'], 
-             row['cloud_cover'], row['et0_fao_evapotranspiration'], row['wind_speed_10m'], 
-             row['wind_direction_10m'], row['soil_temperature_0_to_7cm']))
-
+        creer_table_city_info(conn)
+        creer_table_weather(conn)
+        insert_or_update_city_info(conn, ville, latitude, longitude)
+        insert_weather_data(conn, ville, hourly_dataframe)
         # Commit et fermeture de la connexion
         conn.commit()
         conn.close()
@@ -159,7 +138,7 @@ def get_Historical_weather_data(ville, start_date, end_date):
 # Exemple d'utilisation
 #ville = "Trogues"
 #start_date = "2000-01-01"
-#end_date = "2025-03-10"
+#end_date = "2025-03-16"
 
 #weather_data = get_Historical_weather_data(ville, start_date, end_date)
 

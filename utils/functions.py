@@ -17,8 +17,7 @@ def extraire_piece(nom_fichier):
         st.error(f"❌ Erreur dans l'extraction de la pièce du fichier '{nom_fichier}': {e}")
         return None
 
-
-# Fonction pour nettoyer la colonne "Piece" a modifier
+# Fonction pour nettoyer la colonne "Piece" 
 def nettoyer_Piece(data):
     try:
         # Vérifier si data est une chaîne de caractères
@@ -46,7 +45,6 @@ def nettoyer_Piece(data):
         # Afficher un message d'erreur via Streamlit si une exception est levée
         st.error(f"❌ Erreur dans le nettoyage de la donnée '{data}': {e}")
         return None
-
 
 # importer fichier ENEDIS dans bdd.
 def importer_csv_dans_bdd(uploaded_file, id_batiment):
