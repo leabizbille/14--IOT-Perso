@@ -85,9 +85,9 @@ def page_parametres():
     st.dataframe(df_batiment)
 
 
-# --- Fonction : Page d'installation des pièces ---
+
 def page_installation():
-    st.title("Installation des pièces")
+    st.title("Configuration des pièces")
 
     # Récupérer la liste des bâtiments existants
     batiments = pd.read_sql("SELECT ID_Batiment FROM Batiment", conn)
@@ -97,29 +97,77 @@ def page_installation():
 
     selected_batiment = st.selectbox("Sélectionnez un bâtiment", batiments["ID_Batiment"].tolist())
 
+    # Récupérer la liste des pièces associées au bâtiment sélectionné
+    pieces = pd.read_sql("SELECT Piece FROM Piece WHERE ID_Batiment = ?", conn, params=(selected_batiment,))
+    piece_names = ["Ajouter une nouvelle pièce"] + pieces["Piece"].tolist()
+    selected_piece_name = st.selectbox("Sélectionnez une pièce à modifier ou ajoutez-en une nouvelle", piece_names)
+
+    # Pré-remplissage des champs si une pièce existante est sélectionnée
+    if selected_piece_name != "Ajouter une nouvelle pièce":
+        piece_data = pd.read_sql("SELECT * FROM Piece WHERE Piece = ? AND ID_Batiment = ?", conn, params=(selected_piece_name, selected_batiment))
+        piece_id = piece_data["Piece"].iloc[0]
+        piece = piece_data["Piece"].iloc[0]
+        surface = piece_data["Surface"].iloc[0]
+        orientation = piece_data["Orientation"].iloc[0]
+        chauffage_principal = piece_data["Chauffage_Principal"].iloc[0]
+        chauffage_secondaire = piece_data["Chauffage_Secondaire"].iloc[0]
+        etage = piece_data["Etage"].iloc[0]
+        nbr_fenetre = piece_data["Nbr_Fenetre"].iloc[0]
+        nbr_porte = piece_data["Nbr_Porte"].iloc[0]
+        nbr_mur_facade = piece_data["Nbr_Mur_Facade"].iloc[0]
+        is_new_piece = False
+    else:
+        piece_id = None
+        piece = ""
+        surface = 1
+        orientation = "Nord"
+        chauffage_principal = "Aucun"
+        chauffage_secondaire = "Aucun"
+        etage = 0
+        nbr_fenetre = 0
+        nbr_porte = 0
+        nbr_mur_facade = 1
+        is_new_piece = True
+
+    # Formulaire d'ajout/modification
     with st.form("piece_form"):
-        piece = st.text_input("Nom de la pièce")
-        surface = st.number_input("Surface (m²)", min_value=1, step=1)
-        orientation = st.selectbox("Orientation", ["Nord", "Sud", "Est", "Ouest", "Nord-Est", "Sud-Est", "Nord-Ouest", "Sud-Ouest"])
-        chauffage_principal = st.selectbox("Chauffage Principal", ["Gaz", "Electrique", "Cheminée", "Chauffage au sol", "Aucun"])
-        chauffage_secondaire = st.selectbox("Chauffage Secondaire", ["Gaz", "Electrique", "Cheminée", "Chauffage au sol", "Aucun"])
-        etage = st.number_input("Étage", min_value=0, step=1)
-        nbr_fenetre = st.number_input("Nombre de fenêtres", min_value=0, step=1)
-        nbr_porte = st.number_input("Nombre de portes", min_value=0, step=1)
-        nbr_mur_facade = st.number_input("Nombre de murs en façade", min_value=1, step=1)
-        submitted = st.form_submit_button("Ajouter")
+        piece = st.text_input("Nom de la pièce", value=piece)
+        surface = st.number_input("Surface (m²)", min_value=1, step=1, value=surface)
+        orientation = st.selectbox("Orientation", ["Nord", "Sud", "Est", "Ouest", "Nord-Est", "Sud-Est", "Nord-Ouest", "Sud-Ouest"], index=["Nord", "Sud", "Est", "Ouest", "Nord-Est", "Sud-Est", "Nord-Ouest", "Sud-Ouest"].index(orientation))
+        chauffage_principal = st.selectbox("Chauffage Principal", ["Gaz", "Electrique", "Cheminée", "Chauffage au sol", "Aucun"], index=["Gaz", "Electrique", "Cheminée", "Chauffage au sol", "Aucun"].index(chauffage_principal))
+        chauffage_secondaire = st.selectbox("Chauffage Secondaire", ["Gaz", "Electrique", "Cheminée", "Chauffage au sol", "Aucun"], index=["Gaz", "Electrique", "Cheminée", "Chauffage au sol", "Aucun"].index(chauffage_secondaire))
+        etage = st.number_input("Étage", min_value=0, step=1, value=etage)
+        nbr_fenetre = st.number_input("Nombre de fenêtres", min_value=0, step=1, value=nbr_fenetre)
+        nbr_porte = st.number_input("Nombre de porte exterieur", min_value=0, step=1, value=nbr_porte)
+        nbr_mur_facade = st.number_input("Nombre de murs en façade", min_value=1, step=1, value=nbr_mur_facade)
+
+        submitted = st.form_submit_button("Sauvegarder")
 
         if submitted:
             if piece:
                 try:
-                    cursor.execute("""
-                        INSERT INTO Piece (Piece, Surface, Orientation, Chauffage_Principal, Chauffage_Secondaire, 
-                                           Nbr_Fenetre, Nbr_Porte, Nbr_Mur_Facade, Etage, ID_Batiment)
-                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                    """, (piece, surface, orientation, chauffage_principal, chauffage_secondaire, 
-                          nbr_fenetre, nbr_porte, nbr_mur_facade, etage, selected_batiment))
-                    conn.commit()
-                    st.success(f"✅ Pièce '{piece}' ajoutée au bâtiment '{selected_batiment}' avec succès !")
+                    if is_new_piece:
+                        # Ajout d'une nouvelle pièce
+                        cursor.execute("""
+                            INSERT INTO Piece (Piece, Surface, Orientation, Chauffage_Principal, Chauffage_Secondaire, 
+                                               Nbr_Fenetre, Nbr_Porte, Nbr_Mur_Facade, Etage, ID_Batiment)
+                            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                        """, (piece, surface, orientation, chauffage_principal, chauffage_secondaire, 
+                              nbr_fenetre, nbr_porte, nbr_mur_facade, etage, selected_batiment))
+                        conn.commit()
+                        st.success(f"✅ Pièce '{piece}' ajoutée au bâtiment '{selected_batiment}' avec succès !")
+                    else:
+                        # Mise à jour d'une pièce existante
+                        cursor.execute("""
+                            UPDATE Piece
+                            SET Piece = ?, Surface = ?, Orientation = ?, Chauffage_Principal = ?, Chauffage_Secondaire = ?, 
+                                Nbr_Fenetre = ?, Nbr_Porte = ?, Nbr_Mur_Facade = ?, Etage = ?
+                            WHERE Piece = ?
+                        """, (piece, surface, orientation, chauffage_principal, chauffage_secondaire, 
+                              nbr_fenetre, nbr_porte, nbr_mur_facade, etage, piece_id))
+                        conn.commit()
+                        st.success(f"✅ Pièce '{piece}' mise à jour avec succès !")
+
                 except sqlite3.IntegrityError:
                     st.error("❌ Erreur : Cette pièce existe déjà !")
             else:
@@ -129,6 +177,7 @@ def page_installation():
     df_pieces = pd.read_sql("SELECT * FROM Piece", conn)
     st.subheader("📊 Pièces enregistrées")
     st.dataframe(df_pieces)
+
 
 # --- Fonction : Page Météo ---
 def page_Meteo():
