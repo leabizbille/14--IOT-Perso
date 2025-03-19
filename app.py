@@ -1,7 +1,9 @@
 import streamlit as st
 import pandas as pd
 import sqlite3
+import os
 from datetime import datetime
+from utils.functionsBDD import base_bd, conn
 from utils import (
     importer_csv_dans_bdd, 
     traiter_donnees_Temperature_streamlit,
@@ -14,12 +16,20 @@ from utils import (
     creer_table_piece,
     get_Historical_weather_data
 )
+# Vérifier que la variable est bien récupérée
+if not base_bd:
+    raise ValueError("⚠️ La variable NOM_BASE n'est pas définie dans .env !")
 
-# Connexion à la base de données
-conn = get_connection()
+# Connexion SQLite
+try:
+    conn = sqlite3.connect(base_bd, check_same_thread=False)
+    print(f"✅ Connexion réussie à la base de données : {base_bd}")
+except sqlite3.Error as e:
+    print(f"❌ Erreur lors de la connexion à la base de données : {e}")
+    conn = None  # Assure que `conn` ne soit pas utilisée si la connexion échoue
 cursor = conn.cursor()
-
 # Création de la table si elle n'existe pas
+
 creer_table_consoheure(conn)
 creer_table_city_info(conn)
 creer_table_batiment(conn)
@@ -170,7 +180,7 @@ def page_Enedis():
     st.subheader("Conso Heure")
 
     # Vérifier si la table existe, sinon la créer
-    creer_table_consoheure()
+    creer_table_consoheure(conn)
 
     # Dépôt du fichier CSV
     uploaded_file = st.file_uploader("Déposez un fichier CSV", type=["csv"])
@@ -210,13 +220,13 @@ def page_GoveeH5179():
 
 # --- Navigation dans l'application ---
 st.sidebar.title("1.Navigation")
-page = st.sidebar.radio("Aller à", ["Paramètres du Batiment", "Installation", "Ville avec données Météo","Page Enedis","GoveeWifi"])
+page = st.sidebar.radio("Aller à", ["Paramètres du Batiment", "Paramètres des pieces", "Données Météo","Page Enedis","GoveeWifi"])
 
-if page == "Installation":
+if page == "Paramètres des pieces":
     page_installation()
 if page == "Paramètres du Batiment":
     page_parametres()   
-if page == "Ville avec données Météo":
+if page == "Données Météo":
     page_Meteo()
 if page == "Page Enedis":
     page_Enedis()

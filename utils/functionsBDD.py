@@ -3,25 +3,33 @@ from dotenv import load_dotenv
 import os
 import pandas as pd
 
+# Charger les variables d'environnement
 load_dotenv()
+
+# Récupérer la base de données depuis .env
 base_bd = os.getenv("NOM_BASE")
-conn = sqlite3.connect("base_bd", check_same_thread=False)
+
+# Vérifier que la variable est bien récupérée
+if not base_bd:
+    raise ValueError("⚠️ La variable NOM_BASE n'est pas définie dans .env !")
+
+# Connexion SQLite
+try:
+    conn = sqlite3.connect(base_bd, check_same_thread=False)
+    print(f"✅ Connexion réussie à la base de données : {base_bd}")
+except sqlite3.Error as e:
+    print(f"❌ Erreur lors de la connexion à la base de données : {e}")
+    conn = None  # Assure que `conn` ne soit pas utilisée si la connexion échoue
 
 
 def get_connection():
     """Retourne une connexion à la base de données avec gestion des erreurs."""
     try:
-        # Tentative de connexion à la base de données SQLite
-        conn = sqlite3.connect(base_bd, check_same_thread=False)
-        return conn
+        return sqlite3.connect(base_bd, check_same_thread=False)
     except sqlite3.Error as e:
-        # Si une erreur SQLite survient, afficher un message d'erreur
-        print(f"Erreur de connexion à la base de données : {e}")
-        return None  # Retourne None si la connexion échoue
-    except Exception as e:
-        # Capturer toute autre exception non spécifiée
-        print(f"Erreur inattendue : {e}")
-        return None  # Retourne None si une autre erreur survient
+        print(f"❌ Erreur de connexion à la base de données : {e}")
+        return None
+
 
 # BDD Table pour ENEDIS
 def creer_table_consoheure(conn):
@@ -86,7 +94,7 @@ def creer_table_temperature_piece(conn):
         return False  # Retourne False en cas d'erreur
     return True  # Retourne True si la table a été créée sans erreur
 
-# Table pour les villes
+# Tables pour les villes ----------------------------------------------------------------
 def creer_table_city_info(conn):
     try:
         with conn:
@@ -128,7 +136,7 @@ def insert_or_update_city_info(conn, ville, latitude, longitude):
     conn.commit()
 
 
-# Table pour les informations météorologiques
+# Table pour les informations météorologiques --------------------------------
 def creer_table_weather(conn):
     try:
         with conn:
@@ -185,53 +193,70 @@ def insert_weather_data(conn, ville, hourly_dataframe):
     
     conn.commit()
 
-
 def creer_table_batiment(conn):
-    # Création de la table Batiment si elle n'existe pas déjà
-    cursor = conn.cursor()
-    cursor.execute("""
-    CREATE TABLE IF NOT EXISTS Batiment (
-        ID_Batiment TEXT PRIMARY KEY,
-        Ville TEXT,
-        Consigne_Ete_Jour INTEGER,
-        Consigne_Ete_Nuit INTEGER,
-        Consigne_Hiver_Jour INTEGER,
-        Consigne_Hiver_Nuit INTEGER,
-        Consigne_Absence INTEGER,
-        Date_Allumage DATE,
-        Date_Arret DATE,
-        Zone_Academique TEXT,
-        Type_Batiment TEXT
-    );
-    """)
+    try:
+        with conn:
+            # Création de la table Piece si elle n'existe pas déjà
+            cursor = conn.cursor()
+            cursor.execute("""
+            CREATE TABLE IF NOT EXISTS Batiment (
+                ID_Batiment TEXT PRIMARY KEY,
+                Ville TEXT,
+                Consigne_Ete_Jour INTEGER,
+                Consigne_Ete_Nuit INTEGER,
+                Consigne_Hiver_Jour INTEGER,
+                Consigne_Hiver_Nuit INTEGER,
+                Consigne_Absence INTEGER,
+                Date_Allumage DATE,
+                Date_Arret DATE,
+                Zone_Academique TEXT,
+                Type_Batiment TEXT
+            );
+            """)
+        # Commit pour enregistrer les changements dans la base de données
+            conn.commit()
+            print("Table Batiment créée ou déjà existante.")
+    except sqlite3.Error as e:
+        # Capturer les erreurs spécifiques à SQLite
+        print(f"Erreur SQLite lors de la création de la table : {e}")
+        return False  # Retourne False en cas d'erreur
+    except Exception as e:
+        # Capturer toute autre exception
+        print(f"Erreur inattendue : {e}")
+        return False  # Retourne False en cas d'erreur
+    return True  # Retourne True si la table a été créée sans erreur
 
 
 def creer_table_piece(conn):
     try:
-        # Création de la table Piece si elle n'existe pas déjà
-        cursor = conn.cursor()
-        cursor.execute("""
-        CREATE TABLE IF NOT EXISTS Piece (
-            ID_Batiment TEXT NOT NULL,
-            Piece TEXT NOT NULL,
-            Surface INTEGER NOT NULL,
-            Orientation TEXT NOT NULL,
-            Chauffage_Principal TEXT,
-            Chauffage_Secondaire TEXT,
-            Nbr_Fenetre INTEGER NOT NULL,
-            Nbr_Porte INTEGER NOT NULL,
-            Nbr_Mur_Facade INTEGER NOT NULL,
-            Etage INTEGER,
-            PRIMARY KEY (ID_Batiment, Piece),
-            FOREIGN KEY (ID_Batiment) REFERENCES Batiment(ID_Batiment)
-        );
-        """)
+        with conn:
+            # Création de la table Piece si elle n'existe pas déjà
+            cursor = conn.cursor()
+            cursor.execute("""
+            CREATE TABLE IF NOT EXISTS Piece (
+                ID_Batiment TEXT NOT NULL,
+                Piece TEXT NOT NULL,
+                Surface INTEGER NOT NULL,
+                Orientation TEXT NOT NULL,
+                Chauffage_Principal TEXT,
+                Chauffage_Secondaire TEXT,
+                Nbr_Fenetre INTEGER NOT NULL,
+                Nbr_Porte INTEGER NOT NULL,
+                Nbr_Mur_Facade INTEGER NOT NULL,
+                Etage INTEGER,
+                PRIMARY KEY (ID_Batiment, Piece),
+                FOREIGN KEY (ID_Batiment) REFERENCES Batiment(ID_Batiment)
+            );
+            """)
         # Commit pour enregistrer les changements dans la base de données
-        conn.commit()
-        #print("Table 'Piece' créée avec succès.")
-    except sqlite3.DatabaseError as e:
-        print(f"Erreur lors de la création de la table 'Piece' : {e}")
-        conn.rollback()
+            conn.commit()
+            #print("Table 'Piece' créée avec succès.")
+    except sqlite3.Error as e:
+        # Capturer les erreurs spécifiques à SQLite
+        print(f"Erreur SQLite lors de la création de la table : {e}")
+        return False  # Retourne False en cas d'erreur
     except Exception as e:
+        # Capturer toute autre exception
         print(f"Erreur inattendue : {e}")
-        conn.rollback()
+        return False  # Retourne False en cas d'erreur
+    return True  # Retourne True si la table a été créée sans erreur
