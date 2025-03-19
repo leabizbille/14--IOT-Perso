@@ -1,6 +1,8 @@
 import pandas as pd
 import streamlit as st
 from .functionsBDD import get_connection, get_existing_dates
+import matplotlib.pyplot as plt
+import matplotlib.dates as mdates
 
 # Fonction pour extraire le premier mot avant le premier underscore du nom du fichier
 def extraire_piece(nom_fichier):
@@ -89,3 +91,26 @@ def importer_csv_dans_bdd(uploaded_file, id_batiment):
 
         except Exception as e:
             st.error(f"Erreur lors du traitement du fichier : {e}")
+
+# Fonction pour afficher les graphiques
+     
+def afficher_graphique(df, period='jour'):
+    # Grouper les données en fonction de la période choisie
+    if period == 'année':
+        df_grouped = df.groupby(df['Horodatage'].dt.year)['ValeurW'].sum()
+    elif period == 'mois':
+        df_grouped = df.groupby(df['Horodatage'].dt.to_period('M'))['ValeurW'].sum()
+    elif period == 'jour':
+        df_grouped = df.groupby(df['Horodatage'].dt.date)['ValeurW'].sum()
+    elif period == 'heure':
+        df_grouped = df.groupby(df['Horodatage'].dt.hour)['ValeurW'].sum()
+
+    # Affichage du graphique
+    plt.figure(figsize=(10, 6))
+    df_grouped.plot(kind='bar', color='skyblue')
+    plt.title(f"Consommation électrique par {period}", fontsize=16)
+    plt.xlabel(f"Date ({period})", fontsize=12)
+    plt.ylabel("Consommation en W", fontsize=12)
+    plt.xticks(rotation=45)
+    plt.tight_layout()
+    st.pyplot(plt)

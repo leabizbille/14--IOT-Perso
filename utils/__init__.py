@@ -2,9 +2,9 @@
 VERSION = "1.0.0"
 AUTHOR = "Laurence"
 
-from .functions import importer_csv_dans_bdd, extraire_piece, nettoyer_Piece
+from .functions import importer_csv_dans_bdd, extraire_piece, nettoyer_Piece, afficher_graphique
 
-from .functionsBDD import creer_table_consoheure,creer_table_batiment, creer_table_piece, insert_or_update_city_info, insert_weather_data,creer_table_weather, get_connection,get_existing_dates,creer_table_temperature_piece, creer_table_city_info
+from .functionsBDD import creer_table_consoheure,recuperer_conso_data, creer_table_batiment, creer_table_piece, insert_or_update_city_info, insert_weather_data,creer_table_weather, get_connection,get_existing_dates,creer_table_temperature_piece, creer_table_city_info
 
 from .GoveeWifiInsert import traiter_donnees_Temperature_streamlit
 

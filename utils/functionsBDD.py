@@ -58,6 +58,38 @@ def creer_table_consoheure(conn):
         return False  # Retourne False en cas d'erreur
     return True  # Retourne True si la table a été créée sans erreur
 
+# Fonction pour récupérer les données de consommation
+def recuperer_conso_data(conn):
+    """
+    Récupère les données de consommation électrique depuis la table ConsoHeureElec.
+
+    Parameters:
+        conn (sqlite3.Connection): Connexion à la base de données SQLite.
+
+    Returns:
+        pd.DataFrame: Un DataFrame contenant les données de consommation avec les colonnes Horodatage, ValeurW, et ID_Batiment.
+    """
+    try:
+        cursor = conn.cursor()
+
+        # Exécution de la requête SQL pour récupérer les données
+        cursor.execute("SELECT Horodatage, ValeurW, ID_Batiment FROM ConsoHeureElec")
+        
+        # Récupérer les résultats et les convertir en DataFrame
+        rows = cursor.fetchall()
+        df = pd.DataFrame(rows, columns=["Horodatage", "ValeurW", "ID_Batiment"])
+
+        # Convertir la colonne 'Horodatage' en format datetime
+        df['Horodatage'] = pd.to_datetime(df['Horodatage'])
+
+        return df
+    except sqlite3.Error as e:
+        print(f"Erreur SQLite lors de la récupération des données : {e}")
+        return None  # Retourner None en cas d'erreur
+    except Exception as e:
+        print(f"Erreur inattendue : {e}")
+        return None  # Retourner None en cas d'erreur
+
 def get_existing_dates(conn, id_batiment):
     """Retourne les dates déjà existantes dans la base de données pour un bâtiment donné."""
     query = "SELECT Horodatage FROM ConsoHeureElec WHERE ID_Batiment = ?"

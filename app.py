@@ -14,6 +14,8 @@ from utils import (
     creer_table_city_info, 
     creer_table_batiment,
     creer_table_piece,
+    recuperer_conso_data,
+    afficher_graphique,
     get_Historical_weather_data
 )
 # Vérifier que la variable est bien récupérée
@@ -30,7 +32,6 @@ except sqlite3.Error as e:
 cursor = conn.cursor()
 # Création de la table si elle n'existe pas
 
-creer_table_consoheure(conn)
 creer_table_city_info(conn)
 creer_table_batiment(conn)
 creer_table_piece(conn)
@@ -240,6 +241,16 @@ def page_Enedis():
         except Exception as e:
             st.error(f"Erreur lors de la lecture du fichier : {e}")
 
+        st.title("Graphique de Consommation Électrique")
+
+    # Récupérer les données de consommation
+    df = recuperer_conso_data(conn)
+
+    # Sélecteur de période
+    period = st.selectbox("Choisissez la période", ["année", "mois", "jour", "heure"])
+
+    # Affichage du graphique
+    afficher_graphique(df, period)
 
 # --- Fonction : Page Goovee
 def page_GoveeH5179():
