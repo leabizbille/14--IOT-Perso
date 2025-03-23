@@ -100,5 +100,6 @@ python Meteo.py
 # Pour mettre en fonction streamlit 
 streamlit run Streamlit_BaseBatiment.py
 
+streamlit cache clear
 #------------------------------------------------------------------
 Mettre le fichier .known_govees dans le fichier C:\Users\Lau

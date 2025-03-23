@@ -3,31 +3,32 @@ from dotenv import load_dotenv
 import os
 import pandas as pd
 
-# Charger les variables d'environnement
-load_dotenv()
 
+# Charger les variables d'environnement une seule fois au début du script
+load_dotenv()
 # Récupérer la base de données depuis .env
-base_bd = os.getenv("NOM_BASE")
+base_bd = os.getenv("NOM_BASE", "MaBase.db")
 
 # Vérifier que la variable est bien récupérée
 if not base_bd:
     raise ValueError("⚠️ La variable NOM_BASE n'est pas définie dans .env !")
 
-# Connexion SQLite
-try:
-    conn = sqlite3.connect(base_bd, check_same_thread=False)
-    print(f"✅ Connexion réussie à la base de données : {base_bd}")
-except sqlite3.Error as e:
-    print(f"❌ Erreur lors de la connexion à la base de données : {e}")
-    conn = None  # Assure que `conn` ne soit pas utilisée si la connexion échoue
-
-
 def get_connection():
     """Retourne une connexion à la base de données avec gestion des erreurs."""
     try:
-        return sqlite3.connect(base_bd, check_same_thread=False)
+        # Vérifie si le fichier de base existe
+        if not os.path.exists(base_bd):
+            raise ValueError(f"⚠️ Le fichier de base de données n'existe pas : {base_bd}")
+
+        # Connexion à SQLite
+        conn = sqlite3.connect(base_bd, check_same_thread=False)
+        print(f"✅ Connexion réussie à la base de données : {base_bd}")
+        return conn
     except sqlite3.Error as e:
         print(f"❌ Erreur de connexion à la base de données : {e}")
+        return None
+    except ValueError as ve:
+        print(ve)
         return None
 
 

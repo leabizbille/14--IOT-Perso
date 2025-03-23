@@ -3,28 +3,27 @@ import pandas as pd
 import sqlite3
 import os
 from datetime import datetime
-from utils.functionsBDD import base_bd, conn
 
 from utils import (
     page_Enedis, 
+    base_bd,
     page_GoveeH5179, 
     page_installation, 
     page_Meteo,
     page_parametres,
+    get_connection, 
     traiter_donnees_Temperature_streamlit # a faire
 )
-# Vérifier que la variable est bien récupérée
-if not base_bd:
-    raise ValueError("⚠️ La variable NOM_BASE n'est pas définie dans .env !")
 
-# Connexion SQLite
-try:
-    conn = sqlite3.connect(base_bd, check_same_thread=False)
-    print(f"✅ Connexion réussie à la base de données : {base_bd}")
-except sqlite3.Error as e:
-    print(f"❌ Erreur lors de la connexion à la base de données : {e}")
-    conn = None  # Assure que `conn` ne soit pas utilisée si la connexion échoue
+# Connexion à la base de données
+conn = get_connection()
+
+if conn is None:
+    raise ValueError("La connexion à la base de données a échoué. Impossible de continuer.")
+
+# Si la connexion est réussie, tu peux maintenant créer le curseur
 cursor = conn.cursor()
+
 
 st.sidebar.title("Navigation")
 

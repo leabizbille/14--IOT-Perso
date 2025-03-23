@@ -2,8 +2,8 @@ import streamlit as st
 import pandas as pd
 import sqlite3
 import os
+from dotenv import load_dotenv
 from datetime import datetime
-from utils.functionsBDD import base_bd, conn
 from utils import (
     importer_csv_dans_bdd, 
     traiter_donnees_Temperature_streamlit,
@@ -13,20 +13,29 @@ from utils import (
     creer_table_piece,
     recuperer_conso_data,
     afficher_graphique,
+    get_connection,
     get_Historical_weather_data
 )
-# Vérifier que la variable est bien récupérée
-if not base_bd:
-    raise ValueError("⚠️ La variable NOM_BASE n'est pas définie dans .env !")
 
-# Connexion SQLite
-try:
-    conn = sqlite3.connect(base_bd, check_same_thread=False)
-    print(f"✅ Connexion réussie à la base de données : {base_bd}")
-except sqlite3.Error as e:
-    print(f"❌ Erreur lors de la connexion à la base de données : {e}")
-    conn = None  # Assure que `conn` ne soit pas utilisée si la connexion échoue
+#______________________________________________________________
+
+# Récupérer les variables d'environnement
+base_bd = os.getenv("NOM_BASE")
+url_Meteo = os.getenv("URL_METEO")
+
+# Vérification du nom de la base
+if not base_bd:
+    raise ValueError("Erreur : la variable d'environnement NOM_BASE n'est pas définie.")
+
+# Utiliser la fonction get_connection()
+conn = get_connection()
+if conn is None:
+    raise ValueError("Erreur : impossible d'établir la connexion à la base de données.")
+
+# ✅ Connexion réussie, on peut maintenant utiliser `conn`
 cursor = conn.cursor()
+#______________________________________________________________
+
 
 # --- Fonction : Page de gestion des bâtiments ---
 def page_parametres():

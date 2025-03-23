@@ -1,8 +1,7 @@
 import sqlite3
-from dotenv import load_dotenv
 import os
 import pandas as pd
-from utils.functionsBDD import creer_table_city_info,creer_table_weather,insert_or_update_city_info, insert_weather_data
+from utils.functionsBDD import creer_table_city_info,get_connection, creer_table_weather,insert_or_update_city_info, insert_weather_data
 from geopy.geocoders import Nominatim
 from geopy.exc import GeocoderTimedOut, GeocoderServiceError
 import openmeteo_requests
@@ -14,28 +13,21 @@ from dotenv import load_dotenv
 
 #______________________________________________________________
 
-# Charger les variables d'environnement - Aller chercher le fichier .env dans le dossier parent (racine du projet)
-dotenv_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), ".env")
-#load_dotenv(dotenv_path=os.path.abspath(dotenv_path))
-load_dotenv(dotenv_path=dotenv_path, override=True)
-
+# Récupérer les variables d'environnement
 base_bd = os.getenv("NOM_BASE")
-#print(f"Chemin absolu du fichier .env : {dotenv_path}")
-#print(f"Valeur de NOM_BASE : {base_bd}")
-#print(f"Existe-t-il ? {os.path.exists(base_bd)}")
-
-# Récupérer le nom de la base de données correctement
-base_bd = os.getenv("NOM_BASE")
-conn = sqlite3.connect(base_bd, check_same_thread=False)
 url_Meteo = os.getenv("URL_METEO")
 
-# Vérifier si la variable est bien chargée
-#print(f"Nom de la base récupérée : {base_bd}")  # Debug
-#print(f"Chemin du fichier .env : {dotenv_path}")  # Debug
-#print(f"Contenu de NOM_BASE : {os.getenv('NOM_BASE')}")  # Debug
-
-if base_bd is None:
+# Vérification du nom de la base
+if not base_bd:
     raise ValueError("Erreur : la variable d'environnement NOM_BASE n'est pas définie.")
+
+# Utiliser la fonction get_connection()
+conn = get_connection()
+if conn is None:
+    raise ValueError("Erreur : impossible d'établir la connexion à la base de données.")
+
+# ✅ Connexion réussie, on peut maintenant utiliser `conn`
+cursor = conn.cursor()
 #______________________________________________________________
 
 def get_Historical_weather_data(ville, start_date, end_date):
