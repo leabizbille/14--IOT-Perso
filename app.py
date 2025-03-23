@@ -30,11 +30,6 @@ except sqlite3.Error as e:
     print(f"❌ Erreur lors de la connexion à la base de données : {e}")
     conn = None  # Assure que `conn` ne soit pas utilisée si la connexion échoue
 cursor = conn.cursor()
-# Création de la table si elle n'existe pas
-
-creer_table_city_info(conn)
-creer_table_batiment(conn)
-creer_table_piece(conn)
 
 # --- Fonction : Page de gestion des bâtiments ---
 def page_parametres():
@@ -54,7 +49,7 @@ def page_parametres():
         type_batiment = st.selectbox("Type de bâtiment", options=["Maison", "Entreprise", "École", "Autre"])
 
         submit_button = st.form_submit_button("Soumettre")
-
+        creer_table_batiment(conn)
         if submit_button:
             if ID_Batiment:
                 cursor.execute("""
@@ -89,7 +84,7 @@ def page_parametres():
 
 def page_installation():
     st.title("Configuration des pièces")
-
+    creer_table_piece(conn)
     # Récupérer la liste des bâtiments existants
     batiments = pd.read_sql("SELECT ID_Batiment FROM Batiment", conn)
     if batiments.empty:
@@ -183,7 +178,7 @@ def page_installation():
 # --- Fonction : Page Météo ---
 def page_Meteo():
     st.title("Téléchargement de la météo")
-
+    creer_table_city_info(conn)
     # Récupérer la liste des villes existantes
     villes_df = pd.read_sql("SELECT DISTINCT ville FROM Batiment", conn)
 
@@ -278,31 +273,34 @@ def page_GoveeH5179():
 
 
 
-# --- Navigation dans l'application ---
-st.sidebar.title("1.Navigation")
-page = st.sidebar.radio("Aller à", ["Paramètres du Batiment", "Paramètres des pieces", "Données Météo","Page Enedis","GoveeWifi"])
+# --- Navigation dans l'application ---import streamlit as st
 
-if page == "Paramètres des pieces":
+st.sidebar.title("Menu de navigation")
+
+# Menu 1 : Gestion des bâtiments et pièces
+with st.sidebar.expander("🔧 Paramètres"):
+    menu1 = st.radio("Options :", ["Paramètres du Bâtiment", "Paramètres des Pièces"], key="menu1")
+
+# Menu 2 : Données Météo
+with st.sidebar.expander("🌤️ Données Météo"):
+    menu2 = st.radio("Options :", ["Données Météo"], key="menu2")
+
+# Menu 3 : Consommation énergétique
+with st.sidebar.expander("⚡ Suivi de la consommation"):
+    menu3 = st.radio("Options :", ["Consommation Enedis", "Govee Wifi"], key="menu3")
+
+# --- Gestion de la navigation ---
+if menu1 == "Paramètres du Bâtiment":
+    page_parametres()
+elif menu1 == "Paramètres des Pièces":
     page_installation()
-if page == "Paramètres du Batiment":
-    page_parametres()   
-if page == "Données Météo":
+elif menu2 == "Données Météo":
     page_Meteo()
-if page == "Page Enedis":
+elif menu3 == "Consommation Enedis":
     page_Enedis()
-elif page == "GoveeWifi":
+elif menu3 == "Govee Wifi":
     page_GoveeH5179()
 
-st.sidebar.title("2.")
-# Fermeture de la connexion
-conn.close()
-
-
-
-
-
-
-
-
-
-
+# Fermeture propre de la connexion
+if 'conn' in globals() and conn:
+    conn.close()
