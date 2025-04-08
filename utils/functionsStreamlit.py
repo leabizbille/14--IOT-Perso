@@ -227,7 +227,7 @@ def page_Meteo():
 
 # --- Fonction : Page Insertion fichier Enedis
 def page_Enedis():
-    st.subheader("Sélection du bâtiment :")
+    st.title("Sélection du bâtiment :")
 
     # Récupérer la liste des bâtiments existants
     batiments = pd.read_sql("SELECT ID_Batiment FROM Batiment", conn)
@@ -237,8 +237,10 @@ def page_Enedis():
 
     selected_batiment = st.selectbox("Sélectionnez un bâtiment", batiments["ID_Batiment"].tolist())
 
-    st.title("Téléchargement des données d'Enedis")
-    st.subheader("Conso Heure")
+    st.subheader("Téléchargement des données par HEURE d'Enedis")
+    
+    # --- Image illustrative ---
+    st.image("1-Documents/EnedisHeure.png", caption="Exemple de fichier attendu", use_container_width=True)
 
     # Vérifier si la table existe, sinon la créer
     creer_table_consoheure(conn)
@@ -256,10 +258,11 @@ def page_Enedis():
 
     # Récupérer les données de consommation
     df = recuperer_conso_data(conn)
-
+    
+    st.subheader("Visualisation :")
     # Sélecteur de période
     period = st.selectbox("Choisissez la période", ["année", "mois", "jour", "heure"])
-
+    
     # Affichage du graphique
     afficher_graphique(df, period)
 
