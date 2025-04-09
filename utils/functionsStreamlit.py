@@ -331,3 +331,6 @@ def page_Gaz():
     
     # Affichage du graphique
     afficher_graphiqueGaz(df, period)
+
+
+

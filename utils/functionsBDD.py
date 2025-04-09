@@ -13,6 +13,14 @@ base_bd = os.getenv("NOM_BASE", "MaBase.db")
 if not base_bd:
     raise ValueError("⚠️ La variable NOM_BASE n'est pas définie dans .env !")
 
+# Debug #
+""" conn = sqlite3.connect(base_bd, check_same_thread=False)
+cursor = conn.cursor()
+cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
+tables = cursor.fetchall()
+print("Tables dans la base :", tables)
+print("📍 Chemin absolu utilisé :", os.path.abspath(base_bd)) """
+
 def get_connection():
     """Retourne une connexion à la base de données avec gestion des erreurs."""
     try:
@@ -30,8 +38,7 @@ def get_connection():
     except ValueError as ve:
         print(ve)
         return None
-
-
+    
 # BDD Table pour ENEDIS
 def creer_table_consoheure(conn):
     """Crée la table ConsoHeureElec si elle n'existe pas, avec gestion des erreurs."""
@@ -95,7 +102,6 @@ def get_existing_dates(conn, id_batiment):
     """Retourne les dates déjà existantes dans la base de données pour un bâtiment donné."""
     query = "SELECT Horodatage FROM ConsoHeureElec WHERE ID_Batiment = ?"
     return set(pd.read_sql(query, conn, params=(id_batiment,))["Horodatage"].tolist())
-
 
 def get_existing_datesGAZ(conn, id_batiment):
     """Retourne les dates déjà existantes dans la base de données pour un bâtiment donné."""
@@ -172,7 +178,6 @@ def insert_or_update_city_info(conn, ville, latitude, longitude):
         VALUES (?, ?, ?)''', 
         (ville, latitude, longitude))
     conn.commit()
-
 
 # Table pour les informations météorologiques --------------------------------
 def creer_table_weather(conn):
@@ -264,7 +269,6 @@ def creer_table_batiment(conn):
         return False  # Retourne False en cas d'erreur
     return True  # Retourne True si la table a été créée sans erreur
 
-
 def creer_table_piece(conn):
     try:
         with conn:
@@ -299,7 +303,6 @@ def creer_table_piece(conn):
         return False  # Retourne False en cas d'erreur
     return True  # Retourne True si la table a été créée sans erreur
 
-
 # BDD Table pour le GAZ
 def creer_table_consoJour_GAZ(conn):
     """Créer la table Conso Gaz  si elle n'existe pas, avec gestion des erreurs."""
@@ -330,32 +333,34 @@ def creer_table_consoJour_GAZ(conn):
 
 # Fonction pour récupérer les données de consommation
 def recuperer_conso_dataGAZ(conn):
-    """
-    Récupère les données de consommation gaz depuis la table ConsoJourGaz.
-
-    Parameters:
-        conn (sqlite3.Connection): Connexion à la base de données SQLite.
-
-    Returns:
-        pd.DataFrame: Un DataFrame contenant les données de consommation avec les colonnes Horodatage, Valeur_m3, Conversion et ID_Batiment.
-    """
+    import streamlit as st
     try:
         cursor = conn.cursor()
 
-        # Exécution de la requête SQL pour récupérer les données
-        cursor.execute("SELECT Horodatage, Valeur_m3,Conversion , ID_Batiment FROM ConsoJourGaz")
-        
-        # Récupérer les résultats et les convertir en DataFrame
+        cursor.execute("SELECT Horodatage, Valeur_m3, Conversion, ID_Batiment FROM ConsoJourGaz")
         rows = cursor.fetchall()
-        df = pd.DataFrame(rows, columns=["Horodatage", "Valeur_m3", "Conversion","ID_Batiment"])
 
-        # Convertir la colonne 'Horodatage' en format datetime
-        df['Horodatage'] = pd.to_datetime(df['Horodatage'])
+        if not rows:
+            st.warning("La table ConsoJourGaz est vide.")
+            return None
+        df = pd.DataFrame(rows, columns=["Horodatage", "Valeur_m3", "Conversion", "ID_Batiment"])
 
+        df['Horodatage'] = pd.to_datetime(df['Horodatage'], errors='coerce')
+        if df['Horodatage'].isnull().any():
+            st.warning("Certains horodatages n'ont pas pu être convertis en datetime.")
+        # Affiche les lignes avec des horodatages invalides
+        df_invalid = df[df['Horodatage'].isnull()]
+        if not df_invalid.empty:
+            st.warning(f"{len(df_invalid)} lignes ont un horodatage invalide :")
+            st.dataframe(df_invalid)
         return df
+
     except sqlite3.Error as e:
-        print(f"Erreur SQLite lors de la récupération des données : {e}")
-        return None  # Retourner None en cas d'erreur
+        st.error(f"Erreur SQLite lors de la récupération des données : {e}")
+        return None
     except Exception as e:
-        print(f"Erreur inattendue : {e}")
-        return None  # Retourner None en cas d'erreur
+        st.error(f"Erreur inattendue : {e}")
+        return None
+
+
+

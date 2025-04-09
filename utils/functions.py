@@ -97,17 +97,8 @@ def importer_csv_GAZ_bdd(uploaded_file, id_batiment):
 
     if uploaded_file is not None:
         try:
-            # Détection encodage + lecture brute pour affichage
-            #uploaded_file.seek(0)
-            #content = uploaded_file.read().decode("latin1")
-            #st.text("\n".join(content.splitlines()[:10]))
-
-            # Rewind du fichier pour relecture
-            #uploaded_file.seek(0)
-
             # Lecture du fichier CSV sans skiprows
-            df = pd.read_csv(uploaded_file, sep=";", encoding="latin1", skiprows=2)
-
+            df = pd.read_csv(uploaded_file,  parse_dates=["Date de consommation"], dayfirst=True,sep=";", encoding="latin1", skiprows=2)
             # Vérification des colonnes
             expected_cols = ["Date de consommation", "Consommation (m3)", "Coefficient de conversion"]
             if not all(col in df.columns for col in expected_cols):
@@ -124,7 +115,7 @@ def importer_csv_GAZ_bdd(uploaded_file, id_batiment):
             df["Conversion"] = pd.to_numeric(df["Coefficient de conversion"], errors="coerce")
 
             # Conversion des dates
-            df["Horodatage"] = pd.to_datetime(df["Date de consommation"], dayfirst=True, errors="coerce")
+            df["Horodatage"] = pd.to_datetime(df["Date de consommation"], errors="coerce")
             df["Horodatage"] = df["Horodatage"].dt.normalize()  # Supprimer les heures
 
             # Ajout de l’ID bâtiment
@@ -152,3 +143,4 @@ def importer_csv_GAZ_bdd(uploaded_file, id_batiment):
 
         except Exception as e:
             st.error(f"Erreur lors du traitement du fichier : {e}")
+
