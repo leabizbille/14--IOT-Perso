@@ -96,6 +96,11 @@ def get_existing_dates(conn, id_batiment):
     query = "SELECT Horodatage FROM ConsoHeureElec WHERE ID_Batiment = ?"
     return set(pd.read_sql(query, conn, params=(id_batiment,))["Horodatage"].tolist())
 
+
+def get_existing_datesGAZ(conn, id_batiment):
+    """Retourne les dates déjà existantes dans la base de données pour un bâtiment donné."""
+    query = "SELECT Horodatage FROM ConsoJourGaz WHERE ID_Batiment = ?"
+    return set(pd.read_sql(query, conn, params=(id_batiment,))["Horodatage"].tolist())
 # Table pour les temperature des pieces
 def creer_table_temperature_piece(conn):
     try:
@@ -293,3 +298,64 @@ def creer_table_piece(conn):
         print(f"Erreur inattendue : {e}")
         return False  # Retourne False en cas d'erreur
     return True  # Retourne True si la table a été créée sans erreur
+
+
+# BDD Table pour le GAZ
+def creer_table_consoJour_GAZ(conn):
+    """Créer la table Conso Gaz  si elle n'existe pas, avec gestion des erreurs."""
+    try:
+        with conn:
+            cursor = conn.cursor()
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS ConsoJourGaz (
+                    Horodatage TEXT,
+                    Valeur_m3 INTEGER,
+                    Conversion INTEGER,
+                    ID_Batiment INTEGER,
+                    PRIMARY KEY (Horodatage, ID_Batiment),
+                    FOREIGN KEY (ID_Batiment) REFERENCES Batiment(ID_Batiment)
+                )
+            ''')
+            conn.commit()
+            #print("Table Conso GAZ créée ou déjà existante.")
+    except sqlite3.Error as e:
+        # Capturer les erreurs spécifiques à SQLite
+        print(f"Erreur SQLite lors de la création de la table : {e}")
+        return False  # Retourne False en cas d'erreur
+    except Exception as e:
+        # Capturer toute autre exception
+        print(f"Erreur inattendue : {e}")
+        return False  # Retourne False en cas d'erreur
+    return True  # Retourne True si la table a été créée sans erreur
+
+# Fonction pour récupérer les données de consommation
+def recuperer_conso_dataGAZ(conn):
+    """
+    Récupère les données de consommation gaz depuis la table ConsoJourGaz.
+
+    Parameters:
+        conn (sqlite3.Connection): Connexion à la base de données SQLite.
+
+    Returns:
+        pd.DataFrame: Un DataFrame contenant les données de consommation avec les colonnes Horodatage, Valeur_m3, Conversion et ID_Batiment.
+    """
+    try:
+        cursor = conn.cursor()
+
+        # Exécution de la requête SQL pour récupérer les données
+        cursor.execute("SELECT Horodatage, Valeur_m3,Conversion , ID_Batiment FROM ConsoJourGaz")
+        
+        # Récupérer les résultats et les convertir en DataFrame
+        rows = cursor.fetchall()
+        df = pd.DataFrame(rows, columns=["Horodatage", "Valeur_m3", "Conversion","ID_Batiment"])
+
+        # Convertir la colonne 'Horodatage' en format datetime
+        df['Horodatage'] = pd.to_datetime(df['Horodatage'])
+
+        return df
+    except sqlite3.Error as e:
+        print(f"Erreur SQLite lors de la récupération des données : {e}")
+        return None  # Retourner None en cas d'erreur
+    except Exception as e:
+        print(f"Erreur inattendue : {e}")
+        return None  # Retourner None en cas d'erreur

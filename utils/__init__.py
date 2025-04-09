@@ -5,12 +5,16 @@ AUTHOR = "Laurence"
 from .functions import (
     importer_csv_dans_bdd,
     extraire_piece,
+    importer_csv_GAZ_bdd,
     nettoyer_Piece
 )
 
 from .functionsBDD import (
     creer_table_consoheure,
+    creer_table_consoJour_GAZ,
     recuperer_conso_data,
+    recuperer_conso_dataGAZ,
+    get_existing_datesGAZ,
     base_bd,
     creer_table_batiment,
     creer_table_piece,
@@ -27,10 +31,11 @@ from .GoveeWifiInsert import traiter_donnees_Temperature_streamlit
 
 from .Meteo import get_Historical_weather_data
 
-from .visualizations import afficher_graphique
+from .visualizations import afficher_graphique, afficher_graphiqueGaz
 
 from .functionsStreamlit import (
     page_Enedis,
+    page_Gaz,
     page_GoveeH5179,
     page_installation,
     page_Meteo,

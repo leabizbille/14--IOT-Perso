@@ -12,8 +12,12 @@ from utils import (
     creer_table_batiment,
     creer_table_piece,
     recuperer_conso_data,
+    recuperer_conso_dataGAZ,
     afficher_graphique,
+    afficher_graphiqueGaz,
     get_connection,
+    creer_table_consoJour_GAZ,
+    importer_csv_GAZ_bdd,
     get_Historical_weather_data
 )
 
@@ -258,7 +262,7 @@ def page_Enedis():
 
     # Récupérer les données de consommation
     df = recuperer_conso_data(conn)
-    
+
     st.subheader("Visualisation :")
     # Sélecteur de période
     period = st.selectbox("Choisissez la période", ["année", "mois", "jour", "heure"])
@@ -287,3 +291,43 @@ def page_GoveeH5179():
                 mime="text/csv"
             )
 
+def page_Gaz():
+    st.title("Sélection du bâtiment :")
+
+    # Récupérer la liste des bâtiments existants
+    batiments = pd.read_sql("SELECT ID_Batiment FROM Batiment", conn)
+    if batiments.empty:
+        st.warning("Aucun bâtiment enregistré. Ajoutez-en un dans la section 'Paramètres de gestion'.")
+        return
+
+    selected_batiment = st.selectbox("Sélectionnez un bâtiment", batiments["ID_Batiment"].tolist())
+
+    st.subheader("Téléchargement des données journalière de consommation de Gaz")
+    
+    # --- Image illustrative --- A changer
+    st.image("1-Documents/GAZJour.png", caption="Exemple de fichier attendu", use_container_width=True) 
+
+    # Vérifier si la table existe, sinon la créer
+    creer_table_consoJour_GAZ(conn)
+
+    # Dépôt du fichier CSV
+    uploaded_file = st.file_uploader("Déposez un fichier CSV", type=["csv"])
+    # Appeler la fonction pour afficher les 4 premières lignes
+
+    if uploaded_file is not None:
+        try:
+            importer_csv_GAZ_bdd(uploaded_file, selected_batiment)
+        except Exception as e:
+            st.error(f"Erreur lors de la lecture du fichier : {e}")
+
+        st.title("Graphique de Consommation de Gaz")
+
+    # Récupérer les données de consommation
+    df = recuperer_conso_dataGAZ(conn)
+    
+    st.subheader("Visualisation :")
+    # Sélecteur de période
+    period = st.selectbox("Choisissez la période", ["année", "mois", "jour"])
+    
+    # Affichage du graphique
+    afficher_graphiqueGaz(df, period)

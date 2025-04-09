@@ -6,6 +6,7 @@ from datetime import datetime
 
 from utils import (
     page_Enedis, 
+    page_Gaz,
     base_bd,
     page_GoveeH5179, 
     page_installation, 
@@ -54,8 +55,7 @@ elif menu_principal == "📊 Insertion de données externes":
     if menu_donnees == "Page Enedis":
         page_Enedis()
     elif menu_donnees == "Page GDF":
-        page_GoveeH5179()
-        #page_GDF() à faire et enlever l autre
+        page_Gaz()
 
 elif menu_principal == "🌡️ Températures":
     menu_temperatures = st.sidebar.selectbox("📈 Températures des pièces" ,
