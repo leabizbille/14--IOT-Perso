@@ -20,9 +20,19 @@ numpy
 geopy
 openmeteo_py
 streamlit
+beautifulsoup4
+selenium 
+webdriver-manager
+pymongo 
+gridfs
 
+
+pytest
+pytest-mock
 
 
 scikit-learn
 PyPDF2
 nltk
+
+

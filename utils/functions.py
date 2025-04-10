@@ -144,3 +144,5 @@ def importer_csv_GAZ_bdd(uploaded_file, id_batiment):
         except Exception as e:
             st.error(f"Erreur lors du traitement du fichier : {e}")
 
+
+
