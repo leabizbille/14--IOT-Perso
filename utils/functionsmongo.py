@@ -2,6 +2,8 @@ import pymongo
 import gridfs
 import os
 
+# a faire !
+
 # Connexion à MongoDB (assurez-vous d'avoir MongoDB en marche sur votre machine ou sur un serveur)
 client = pymongo.MongoClient("mongodb://localhost:27017/")
 db = client["edf_db"]  # Nom de la base de données
