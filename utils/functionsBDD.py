@@ -2,6 +2,8 @@ import sqlite3
 from dotenv import load_dotenv
 import os
 import pandas as pd
+import bcrypt
+from datetime import datetime
 
 
 # Charger les variables d'environnement une seule fois au début du script
@@ -39,6 +41,126 @@ def get_connection():
         print(ve)
         return None
     
+
+# --- Création de la table utilisateurs ---
+import sqlite3
+import bcrypt
+from datetime import datetime
+
+# --- Création de la table utilisateur ---
+def creer_table_utilisateur(conn):
+    """
+    Crée la table 'utilisateur' si elle n'existe pas déjà.
+    
+    Paramètres :
+        conn (sqlite3.Connection) : connexion active à la base SQLite.
+    
+    Retour :
+        bool : True si la table est créée sans erreur, False sinon.
+    """
+    try:
+        with conn:
+            cursor = conn.cursor()
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS utilisateur (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    Horodatage TEXT,
+                    username TEXT UNIQUE,
+                    password TEXT,
+                    role TEXT
+                )
+            ''')
+        return True
+    except sqlite3.Error as e:
+        print(f"Erreur SQLite lors de la création de la table : {e}")
+        return False
+    except Exception as e:
+        print(f"Erreur inattendue : {e}")
+        return False
+
+# --- Ajout d'un utilisateur ---
+def insert_user(conn, username, password, role):
+    """
+    Ajoute un utilisateur à la base avec un mot de passe haché.
+
+    Paramètres :
+        conn (sqlite3.Connection) : connexion active à la base SQLite.
+        username (str) : identifiant de l'utilisateur.
+        password (str) : mot de passe en clair à hacher.
+        role (str) : rôle de l'utilisateur (ex : 'admin', 'user').
+    
+    Retour :
+        bool : True si l'insertion a réussi, False sinon.
+    """
+    try:
+        cursor = conn.cursor()
+        hashed = bcrypt.hashpw(password.encode(), bcrypt.gensalt())
+        horodatage = datetime.now().isoformat(timespec='seconds')  # Format ISO 8601
+        
+        cursor.execute('''
+            INSERT INTO utilisateur (Horodatage, username, password, role) 
+            VALUES (?, ?, ?, ?)
+        ''', (horodatage, username, hashed, role))
+        conn.commit()
+        return True
+    except sqlite3.IntegrityError:
+        print(f"Erreur : l'utilisateur '{username}' existe déjà.")
+        return False
+    except Exception as e:
+        print(f"Erreur lors de l'ajout de l'utilisateur : {e}")
+        return False
+
+# --- Récupération d'un utilisateur ---
+def get_user(conn, username):
+    """
+    Récupère les informations d'un utilisateur à partir de son nom.
+
+    Paramètres :
+        conn (sqlite3.Connection) : connexion active à la base SQLite.
+        username (str) : nom d'utilisateur à rechercher.
+    
+    Retour :
+        tuple | None : (username, password_hash, role) ou None si non trouvé.
+    """
+    try:
+        cursor = conn.cursor()
+        cursor.execute("SELECT username, password, role FROM utilisateur WHERE username = ?", (username,))
+        return cursor.fetchone()  # Retourne None si utilisateur non trouvé
+    except Exception as e:
+        print(f"Erreur lors de la récupération de l'utilisateur : {e}")
+        return None
+
+# Creation table connexion batiment - utilisateurs
+def creer_table_utilisateur_batiment(conn):
+    """
+    Crée la table 'utilisateur_batiment' si elle n'existe pas déjà.
+    
+    Paramètres :
+        conn (sqlite3.Connection) : connexion active à la base SQLite.
+    
+    Retour :
+        bool : True si la table est créée sans erreur, False sinon.
+    """
+    try:
+        with conn:
+            cursor = conn.cursor()
+            cursor.execute('''
+                CREATE TABLE utilisateur_batiment (
+                    id_utilisateur INTEGER,
+                    id_batiment INTEGER,
+                    FOREIGN KEY (id_utilisateur) REFERENCES utilisateur(id_utilisateur),
+                    FOREIGN KEY (id_batiment) REFERENCES batiment(id_batiment),
+                    PRIMARY KEY (id_utilisateur, id_batiment)
+                )
+            ''')
+        return True
+    except sqlite3.Error as e:
+        print(f"Erreur SQLite lors de la création de la table : {e}")
+        return False
+    except Exception as e:
+        print(f"Erreur inattendue : {e}")
+        return False
+
 # BDD Table pour ENEDIS
 def creer_table_consoheure(conn):
     """Crée la table ConsoHeureElec si elle n'existe pas, avec gestion des erreurs."""

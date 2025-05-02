@@ -7,6 +7,8 @@ from datetime import datetime
 from utils import (
     importer_csv_dans_bdd, 
     traiter_donnees_Temperature_streamlit,
+    creer_table_utilisateur,
+    insert_user,
     creer_table_consoheure, 
     creer_table_city_info, 
     creer_table_batiment,
@@ -16,6 +18,8 @@ from utils import (
     afficher_graphique,
     afficher_graphiqueGaz,
     get_connection,
+    get_user,
+    check_password,
     creer_table_consoJour_GAZ,
     importer_csv_GAZ_bdd,
     get_Historical_weather_data
@@ -38,16 +42,106 @@ if conn is None:
 
 # ✅ Connexion réussie, on peut maintenant utiliser `conn`
 cursor = conn.cursor()
-#______________________________________________________________
+#_________________________
+
+# Page de connexion
+def page_connexion(conn):
+    # Initialisation session
+    if "logged_in" not in st.session_state:
+        st.session_state.logged_in = False
+        st.session_state.username = ""
+        st.session_state.role = ""
+
+    if not st.session_state.logged_in:
+        st.title("🔐 Connexion")
+
+        with st.form("login_form"):
+            username = st.text_input("Nom d'utilisateur")
+            password = st.text_input("Mot de passe", type="password")
+            submit = st.form_submit_button("Se connecter")
+
+            if submit:
+                user = get_user(conn, username)
+                if user and check_password(password, user[1]):
+                    st.session_state.logged_in = True
+                    st.session_state.username = user[0]
+                    st.session_state.role = user[2]
+                    st.success("Connexion réussie 🎉")
+                    st.rerun()
+
+                else:
+                    st.error("Identifiants invalides.")
+    if st.button("Créer un compte"):
+        st.session_state.page = "register"
+        st.rerun()
+    else:
+        st.sidebar.success(f"Connecté en tant que : {st.session_state.username}")
+
+        # Affichage conditionnel en fonction du rôle
+        if st.session_state.role == "admin":
+            st.title("👑 Tableau de bord")
+            st.write(f"Bienvenue, {st.session_state.username} !")
+        elif st.session_state.role == "user":
+            st.title("👤 Mon Espace utilisateur")
+            st.write(f"Bienvenue, {st.session_state.username} !")
+        else:
+            st.warning("")
+
+        if st.sidebar.button("Se déconnecter"):
+            st.session_state.logged_in = False
+            st.session_state.username = ""
+            st.session_state.role = ""
+            st.rerun()
+
+def page_creation_compte(conn):
+    st.title("🆕 Créer un compte")
+
+    with st.form("register_form"):
+        username = st.text_input("Nom d'utilisateur")
+        password = st.text_input("Mot de passe", type="password")
+        confirm = st.text_input("Confirmer le mot de passe", type="password")
+        role = st.selectbox("Rôle", ["user", "admin"])
+        submit = st.form_submit_button("Créer le compte")
+
+        if submit:
+            if not username or not password:
+                st.error("Tous les champs sont requis.")
+            elif password != confirm:
+                st.error("Les mots de passe ne correspondent pas.")
+            else:
+                success = insert_user(conn, username, password, role)
+                if success:
+                    st.success("Compte créé avec succès ✅")
+                    st.session_state.page = "login"
+                    st.rerun()
+                else:
+                    st.error("Erreur lors de la création du compte. Peut-être un utilisateur existant ?")
+
+    if st.button("⬅️ Retour à la connexion"):
+        st.session_state.page = "login"
+        st.rerun()
 
 
 # --- Fonction : Page de gestion des bâtiments ---
 def page_parametres():
     st.title("Configuration des bâtiments")
 
+    username = st.session_state.username
+
+    # Récupérer l'id de l'utilisateur à partir de son nom
+    cursor = conn.cursor()
+    cursor.execute("SELECT id FROM utilisateur WHERE username = ?", (username,))
+    user_row = cursor.fetchone()
+    
+    if user_row is None:
+        st.error("Utilisateur introuvable.")
+        return
+    
+    id_utilisateur = user_row[0]
+
     with st.form("chauffage_form"):
         ID_Batiment = st.text_input("Choisissez un nom pour votre bâtiment")
-        ville = st.selectbox("Sélectionner la ville", options=['Tours', 'Trogues','Monts', 'Luz-Saint-Sauveur', 'Paris', 'Lyon', 'Marseille', 'Bordeaux', 'Toulouse', 'Nantes'])
+        ville = st.selectbox("Sélectionner la ville", options=['Tours', 'Trogues', 'Monts', 'Luz-Saint-Sauveur', 'Paris', 'Lyon', 'Marseille', 'Bordeaux', 'Toulouse', 'Nantes'])
         consigne_ete_jour = st.number_input("Consigne jour en été (°C)", min_value=0, max_value=50, value=23)
         consigne_ete_nuit = st.number_input("Consigne nuit en été (°C)", min_value=0, max_value=50, value=26)
         consigne_hiver_jour = st.number_input("Consigne jour en hiver (°C)", min_value=15, max_value=30, value=20)
@@ -59,35 +153,52 @@ def page_parametres():
         type_batiment = st.selectbox("Type de bâtiment", options=["Maison", "Entreprise", "École", "Autre"])
 
         submit_button = st.form_submit_button("Soumettre")
-        creer_table_batiment(conn)
+
         if submit_button:
             if ID_Batiment:
+                # Insertion ou mise à jour du bâtiment
                 cursor.execute("""
                     INSERT INTO Batiment (ID_Batiment, Ville, Consigne_Ete_Jour, Consigne_Ete_Nuit, 
-                                         Consigne_Hiver_Jour, Consigne_Hiver_Nuit, Consigne_Absence, 
-                                         Date_Allumage, Date_Arret, Zone_Academique, Type_Batiment)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                                        Consigne_Hiver_Jour, Consigne_Hiver_Nuit, Consigne_Absence, 
+                                        Date_Allumage, Date_Arret, Zone_Academique, Type_Batiment, id_utilisateur)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                     ON CONFLICT(ID_Batiment) DO UPDATE SET 
-                    Ville=excluded.Ville,
-                    Consigne_Ete_Jour=excluded.Consigne_Ete_Jour,
-                    Consigne_Ete_Nuit=excluded.Consigne_Ete_Nuit,
-                    Consigne_Hiver_Jour=excluded.Consigne_Hiver_Jour,
-                    Consigne_Hiver_Nuit=excluded.Consigne_Hiver_Nuit,
-                    Consigne_Absence=excluded.Consigne_Absence,
-                    Date_Allumage=excluded.Date_Allumage,
-                    Date_Arret=excluded.Date_Arret,
-                    Zone_Academique=excluded.Zone_Academique,
-                    Type_Batiment=excluded.Type_Batiment;
-                """, (ID_Batiment, ville, consigne_ete_jour, consigne_ete_nuit, consigne_hiver_jour, 
-                      consigne_hiver_nuit, consigne_absence, date_allumage, date_arret, zone_academique, type_batiment))
+                        Ville=excluded.Ville,
+                        Consigne_Ete_Jour=excluded.Consigne_Ete_Jour,
+                        Consigne_Ete_Nuit=excluded.Consigne_Ete_Nuit,
+                        Consigne_Hiver_Jour=excluded.Consigne_Hiver_Jour,
+                        Consigne_Hiver_Nuit=excluded.Consigne_Hiver_Nuit,
+                        Consigne_Absence=excluded.Consigne_Absence,
+                        Date_Allumage=excluded.Date_Allumage,
+                        Date_Arret=excluded.Date_Arret,
+                        Zone_Academique=excluded.Zone_Academique,
+                        Type_Batiment=excluded.Type_Batiment,
+                        id_utilisateur=excluded.id_utilisateur;
+                """, (
+                    ID_Batiment, ville, consigne_ete_jour, consigne_ete_nuit,
+                    consigne_hiver_jour, consigne_hiver_nuit, consigne_absence,
+                    date_allumage, date_arret, zone_academique, type_batiment, id_utilisateur
+                ))
+
+                # Ajouter l'entrée dans la table de liaison (utilisateur_batiment)
+                cursor.execute("""
+                    INSERT OR IGNORE INTO utilisateur_batiment (id_utilisateur, id_batiment)
+                    VALUES (?, ?);
+                """, (id_utilisateur, ID_Batiment))
+
                 conn.commit()
-                st.success(f"Bâtiment '{ID_Batiment}' ajouté/mis à jour avec succès !")
+                st.success(f"Bâtiment '{ID_Batiment}' ajouté/mis à jour et lié à l'utilisateur !")
             else:
                 st.error("Veuillez entrer un nom pour le bâtiment.")
 
-    # --- Affichage des bâtiments enregistrés ---
-    df_batiment = pd.read_sql("SELECT * FROM Batiment", conn)
-    st.subheader("Bâtiments enregistrés")
+    # --- Affichage des bâtiments liés à l'utilisateur ---
+    df_batiment = pd.read_sql_query("""
+        SELECT b.* FROM Batiment b
+        JOIN utilisateur_batiment ub ON b.ID_Batiment = ub.id_batiment
+        WHERE ub.id_utilisateur = ?
+    """, conn, params=(id_utilisateur,))
+    
+    st.subheader("Vos bâtiments enregistrés")
     st.dataframe(df_batiment)
 
 def page_installation():

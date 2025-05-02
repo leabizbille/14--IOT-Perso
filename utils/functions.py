@@ -1,7 +1,7 @@
 import pandas as pd
 import streamlit as st
 from .functionsBDD import get_connection, get_existing_dates, get_existing_datesGAZ
-
+import bcrypt
 
 # Fonction pour extraire le premier mot avant le premier underscore du nom du fichier
 def extraire_piece(nom_fichier):
@@ -144,5 +144,8 @@ def importer_csv_GAZ_bdd(uploaded_file, id_batiment):
         except Exception as e:
             st.error(f"Erreur lors du traitement du fichier : {e}")
 
+# Vérification mot de passe
+def check_password(password, hashed):
+    return bcrypt.checkpw(password.encode(), hashed)
 
 

@@ -3,10 +3,14 @@ import pandas as pd
 import sqlite3
 import os
 from datetime import datetime
+from prometheus_client import start_http_server, Counter
+import threading
+import time
 
 from utils import (
     page_Enedis, 
     page_Gaz,
+    page_connexion,
     base_bd,
     page_GoveeH5179, 
     page_installation, 
@@ -25,12 +29,38 @@ if conn is None:
 # Si la connexion est réussie, tu peux maintenant créer le curseur
 cursor = conn.cursor()
 
+# --- Prometheus Metrics Setup ---
+# Start Prometheus metrics server in a separate thread
+# Check if the server is already running to avoid issues with Streamlit's hot-reloading
+if '_prometheus_server_started' not in st.session_state:
+    try:
+        start_http_server(8001)
+        st.session_state._prometheus_server_started = True
+        print("Prometheus metrics server started on port 8001")
+    except OSError as e:
+        # Handle cases where the port might already be in use (e.g., during dev reloads)
+        print(f"Prometheus server already running or port 8001 busy? Error: {e}")
+        # Optionally, decide if this is critical or can be ignored in dev
+        pass # Or raise an error if needed
+
+    # Define metrics only if not already defined in the session state
+    if 'PAGE_SELECTIONS' not in st.session_state:
+        st.session_state.PAGE_SELECTIONS = Counter('page_selections_total', 'Total selections for each main menu page', ['page_name'])
+        print("Prometheus Counter 'page_selections_total' defined.")
+
+# Use the metric from session state
+PAGE_SELECTIONS = st.session_state.PAGE_SELECTIONS
+
 
 st.sidebar.title("Navigation")
 
 # --- Étape 1 : Sélection du menu principal ---
-menu_principal = st.sidebar.radio("Sélectionnez :", 
-                                  ["🏠 Paramétrages du Batiment", "🌍 Météo", "📊 Insertion de données externes", "🌡️ Températures"])
+menu_options = ["🏠 Paramétrages du Batiment", "🌍 Météo", "📊 Insertion de données externes", "🌡️ Températures"]
+menu_principal = st.sidebar.radio("Sélectionnez :", menu_options)
+
+# Increment Prometheus counter based on selection
+if menu_principal:
+    PAGE_SELECTIONS.labels(page_name=menu_principal).inc()
 
 # --- Étape 2 : Sélection des sous-menus selon la catégorie choisie ---
 if menu_principal == "🏠 Paramétrages du Batiment":
@@ -70,4 +100,3 @@ elif menu_principal == "🌡️ Températures":
 # --- Fermeture propre de la connexion ---
 if 'conn' in globals() and conn:
     conn.close()
-

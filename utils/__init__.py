@@ -6,6 +6,7 @@ from .functions import (
     importer_csv_dans_bdd,
     extraire_piece,
     importer_csv_GAZ_bdd,
+    check_password,
     nettoyer_Piece
 )
 
@@ -15,6 +16,10 @@ from .functionsBDD import (
     recuperer_conso_data,
     recuperer_conso_dataGAZ,
     get_existing_datesGAZ,
+    creer_table_utilisateur,
+    creer_table_utilisateur_batiment,
+    insert_user,
+    get_user,
     base_bd,
     creer_table_batiment,
     creer_table_piece,
@@ -38,6 +43,8 @@ from .functionsStreamlit import (
     page_Gaz,
     page_GoveeH5179,
     page_installation,
+    page_creation_compte,
     page_Meteo,
+    page_connexion,
     page_parametres
 )
