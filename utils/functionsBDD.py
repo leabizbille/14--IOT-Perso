@@ -41,7 +41,6 @@ def get_connection():
         print(ve)
         return None
     
-
 # --- Création de la table utilisateur ---
 def creer_table_utilisateur(conn):
     """
@@ -253,7 +252,6 @@ def creer_table_temperature_piece(conn):
         return False
     return True
 
-
 # Table pour rajouter les données Temperature Govee dans BDD
 def inserer_donnees_temperature_piece(conn, df, Id_Batiment):
     try:
@@ -275,7 +273,6 @@ def inserer_donnees_temperature_piece(conn, df, Id_Batiment):
     except Exception as e:
         print(f"Erreur lors de l'insertion des données : {e}")
         return False
-
 
 # Tables pour les villes ----------------------------------------------------------------
 def creer_table_city_info(conn):

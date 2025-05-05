@@ -34,6 +34,7 @@ from .functionsBDD import (
 )
 
 from .GoveeWifiInsert import traiter_donnees_Temperature_streamlit
+from .govee_h5075 import GoveeThermometerHygrometer, Alias, recorded_data, device_info 
 
 from .Meteo import get_Historical_weather_data
 

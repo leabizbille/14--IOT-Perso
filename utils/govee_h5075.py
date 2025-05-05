@@ -55,7 +55,6 @@ class Measurement():
             "steamPressure": round(self.steamPressure, 1)
         }
 
-
 class DeviceInfo():
 
     def __init__(self, macAddress: str, name: str, manufacturer: str, model: str, hardware: str, firmware: str) -> None:
@@ -89,7 +88,6 @@ class DeviceInfo():
             "firmware": self.firmware
         }
 
-
 class DataControl():
 
     DATA_CONTROL_IDLE = 0
@@ -110,7 +108,6 @@ class DataControl():
     def count(self) -> None:
 
         self.counted_msg += 1
-
 
 class GoveeThermometerHygrometer():
 
@@ -307,7 +304,6 @@ class GoveeThermometerHygrometer():
                 while True:
                     await asyncio.sleep(1)
 
-
 class Alias():
 
     _KNOWN_DEVICES_FILE = ".known_govees"
@@ -339,7 +335,6 @@ class Alias():
                 a for a in self.aliases if self.aliases[a].startswith(label)]
             return macs[0] if macs else None
 
-
 def arg_parse(args: 'list[str]') -> dict:
 
     parser = argparse.ArgumentParser(prog='govee-h5075.py', description=
@@ -361,7 +356,6 @@ def arg_parse(args: 'list[str]') -> dict:
 
     return parser.parse_args(args)
 
-
 def scan():
 
     def stdout_consumer(address: str, name: str, battery: int, measurement: Measurement) -> None:
@@ -379,7 +373,6 @@ def scan():
     asyncio.run(GoveeThermometerHygrometer.scan(
         consumer=stdout_consumer, progress=progress))
 
-
 def measure():
 
     def stdout_consumer(address: str, name: str, battery: int, measurement: Measurement) -> None:
@@ -393,7 +386,6 @@ def measure():
     print("Timestamp             MAC-Address/Alias     Device name   Temperature  Dew point  Rel. humidity  Abs. humidity  Steam pressure  Battery", flush=True)
     asyncio.run(GoveeThermometerHygrometer.scan(
         unique=False, duration=0, consumer=stdout_consumer))
-
 
 async def device_info(label: str, _json: bool = False) -> None:
 
@@ -412,7 +404,6 @@ async def device_info(label: str, _json: bool = False) -> None:
 
     finally:
         await device.disconnect()
-
 
 async def recorded_data(label: str, start: str, end: str, _json: bool = False):
 
