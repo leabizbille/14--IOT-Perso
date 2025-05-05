@@ -22,6 +22,7 @@ from utils import (
     check_password,
     creer_table_consoJour_GAZ,
     importer_csv_GAZ_bdd,
+    inserer_donnees_temperature_piece,
     get_Historical_weather_data
 )
 
@@ -120,7 +121,6 @@ def page_creation_compte(conn):
     if st.button("⬅️ Retour à la connexion"):
         st.session_state.page = "login"
         st.rerun()
-
 
 # --- Fonction : Page de gestion des bâtiments ---
 def page_parametres():
@@ -384,16 +384,39 @@ def page_Enedis():
 # --- Fonction : Page Goovee
 def page_GoveeH5179():
     st.title("Analyse des données Govee H5179")
+
+    # Connexion à la base de données
+    #conn = sqlite3.connect("MaBase.db")  # Chemin vers ta base de données
+
+    st.subheader("Sélection du bâtiment")
+    # Récupérer la liste des bâtiments existants
+    try:
+        batiments = pd.read_sql("SELECT ID_Batiment FROM Batiment", conn)
+    except Exception as e:
+        st.error(f"Erreur lors de la récupération des bâtiments : {e}")
+        return
+
+    if batiments.empty:
+        st.warning("Aucun bâtiment enregistré. Ajoutez-en un dans la section 'Paramètres de gestion'.")
+        return
+
+    Id_Batiment = st.selectbox("Sélectionnez un bâtiment", batiments["ID_Batiment"].tolist())
+
     uploaded_files = st.file_uploader("Déposez un ou plusieurs fichiers CSV", type=["csv"], accept_multiple_files=True)
 
     if uploaded_files:
-        chemin_sortie = "donnees_temperature"  # Dossier de stockage en local
+        chemin_sortie = "donnees_temperature"  # Dossier de stockage local
         df_resultat = traiter_donnees_Temperature_streamlit(uploaded_files, chemin_sortie)
 
         if df_resultat is not None:
             st.write("Aperçu des données combinées :", df_resultat.head())
 
-            # Ajouter un bouton de téléchargement
+            if inserer_donnees_temperature_piece(conn, df_resultat, Id_Batiment):
+                st.success("✅ Données insérées avec succès dans la base de données.")
+            else:
+                st.error("❌ Une erreur est survenue lors de l'insertion des données.")
+
+            # Bouton de téléchargement
             csv = df_resultat.to_csv(index=False).encode('utf-8')
             st.download_button(
                 label="📥 Télécharger le fichier combiné",
@@ -401,6 +424,7 @@ def page_GoveeH5179():
                 file_name=f"donnees_combinees_Temperature_{datetime.now().strftime('%Y-%m-%d')}.csv",
                 mime="text/csv"
             )
+
 
 def page_Gaz():
     st.title("Sélection du bâtiment :")

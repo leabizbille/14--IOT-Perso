@@ -29,6 +29,7 @@ from .functionsBDD import (
     get_connection,
     get_existing_dates,
     creer_table_temperature_piece,
+    inserer_donnees_temperature_piece,
     creer_table_city_info
 )
 

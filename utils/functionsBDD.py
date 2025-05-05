@@ -4,7 +4,7 @@ import os
 import pandas as pd
 import bcrypt
 from datetime import datetime
-
+import bcrypt
 
 # Charger les variables d'environnement une seule fois au début du script
 load_dotenv()
@@ -41,11 +41,6 @@ def get_connection():
         print(ve)
         return None
     
-
-# --- Création de la table utilisateurs ---
-import sqlite3
-import bcrypt
-from datetime import datetime
 
 # --- Création de la table utilisateur ---
 def creer_table_utilisateur(conn):
@@ -234,7 +229,6 @@ def creer_table_temperature_piece(conn):
     try:
         with conn:
             cursor = conn.cursor()
-            # Création de la table TemperaturePiece
             cursor.execute('''
                 CREATE TABLE IF NOT EXISTS TemperaturePiece (
                     ID INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -245,20 +239,43 @@ def creer_table_temperature_piece(conn):
                     ID_Batiment TEXT(20) NOT NULL,
                     CONSTRAINT TemperaturePiece_Piece_FK 
                         FOREIGN KEY (ID_Batiment, Piece) 
-                        REFERENCES Piece(ID_Batiment, Piece)
+                        REFERENCES Piece(ID_Batiment, Piece),
+                    CONSTRAINT unique_temp_entry
+                        UNIQUE(Horodatage, Piece, ID_Batiment)
                 )
             ''')
             conn.commit()
-            #print("Table TemperaturePiece créée ou déjà existante.")
     except sqlite3.Error as e:
-        # Capturer les erreurs spécifiques à SQLite
         print(f"Erreur SQLite lors de la création de la table : {e}")
-        return False  # Retourne False en cas d'erreur
+        return False
     except Exception as e:
-        # Capturer toute autre exception
         print(f"Erreur inattendue : {e}")
-        return False  # Retourne False en cas d'erreur
-    return True  # Retourne True si la table a été créée sans erreur
+        return False
+    return True
+
+
+# Table pour rajouter les données Temperature Govee dans BDD
+def inserer_donnees_temperature_piece(conn, df, Id_Batiment):
+    try:
+        with conn:
+            cursor = conn.cursor()
+            for _, row in df.iterrows():
+                cursor.execute('''
+                    INSERT INTO TemperaturePiece (Horodatage, Température_Celsius, Humidité_Relative, Piece, ID_Batiment)
+                    VALUES (?, ?, ?, ?, ?)
+                ''', (
+                    row['Date'].strftime('%Y-%m-%d %H:%M:%S'),  # 🔧 Conversion explicite du timestamp
+                    int(row['Temperature']),
+                    int(row['Humidite']),
+                    row['Piece'],
+                    Id_Batiment
+                ))
+            conn.commit()
+        return True
+    except Exception as e:
+        print(f"Erreur lors de l'insertion des données : {e}")
+        return False
+
 
 # Tables pour les villes ----------------------------------------------------------------
 def creer_table_city_info(conn):
