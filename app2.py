@@ -17,7 +17,8 @@ from utils import (
     page_parametres,
     get_connection, 
     creer_table_utilisateur,
-    traiter_donnees_Temperature_streamlit # à faire
+    page_visualisation_Govee,
+    traiter_donnees_Temperature_streamlit
 )
 
 # --- Connexion à la base de données ---
@@ -108,9 +109,10 @@ elif menu_principal == "📊 Insertion de données externes":
 elif menu_principal == "🌡️ Températures":
     menu_temperatures = st.sidebar.selectbox("📈 Températures des pièces", 
                                              ["GoveeWifi Temperature", "GoveeBluetooth Temperature"])
-    if menu_temperatures in ["GoveeWifi Temperature", "GoveeBluetooth Temperature"]:
+    if menu_temperatures == "GoveeWifi Temperature":
         page_GoveeH5179()
-        # TODO: remplacer par page_GoveeBT() si Bluetooth dispo plus tard
+    elif menu_temperatures == "GoveeBluetooth Temperature":
+        page_visualisation_Govee()
 
 # --- Déconnexion ---
 if st.sidebar.button("Se déconnecter"):

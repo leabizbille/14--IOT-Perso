@@ -48,5 +48,6 @@ from .functionsStreamlit import (
     page_creation_compte,
     page_Meteo,
     page_connexion,
+    page_visualisation_Govee,
     page_parametres
 )

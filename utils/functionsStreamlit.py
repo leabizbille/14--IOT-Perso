@@ -4,6 +4,9 @@ import sqlite3
 import os
 from dotenv import load_dotenv
 from datetime import datetime
+import matplotlib.pyplot as plt
+import seaborn as sns
+
 from utils import (
     importer_csv_dans_bdd, 
     traiter_donnees_Temperature_streamlit,
@@ -465,6 +468,122 @@ def page_Gaz():
     
     # Affichage du graphique
     afficher_graphiqueGaz(df, period)
+
+
+import streamlit as st
+import pandas as pd
+import sqlite3
+import seaborn as sns
+import matplotlib.pyplot as plt
+from io import BytesIO
+
+def fig_to_bytes(fig):
+    buf = BytesIO()
+    fig.savefig(buf, format="png")
+    buf.seek(0)
+    return buf.getvalue()
+
+def page_visualisation_Govee():
+    st.title("Visualisation des Données H5179")
+
+    # Connexion à la base de données
+    conn = sqlite3.connect("MaBase.db")
+
+    try:
+        requete = """
+            SELECT DISTINCT 
+                strftime('%Y', Horodatage) AS annee,
+                strftime('%m', Horodatage) AS mois,
+                strftime('%d', Horodatage) AS jour
+            FROM TemperaturePiece
+        """
+        date_info = pd.read_sql(requete, conn)
+    except Exception as e:
+        st.error(f"Erreur lors de la récupération des données : {e}")
+        return
+
+    # Filtres temporels
+    st.subheader("Filtrage temporel")
+    annees = st.multiselect("Années", sorted(date_info["annee"].unique(), reverse=True))
+    mois = st.multiselect("Mois", sorted(date_info["mois"].unique()))
+
+    jours_disponibles = date_info
+    if annees:
+        jours_disponibles = jours_disponibles[jours_disponibles["annee"].isin(annees)]
+    if mois:
+        jours_disponibles = jours_disponibles[jours_disponibles["mois"].isin(mois)]
+
+    jours = st.multiselect("Jours", sorted(jours_disponibles["jour"].unique()))
+
+    # Filtre pièce
+    st.subheader("Sélectionnez la pièce")
+    try:
+        pieces = pd.read_sql("SELECT DISTINCT Piece FROM TemperaturePiece", conn)
+    except Exception as e:
+        st.error(f"Erreur lors de la récupération des pièces : {e}")
+        return
+
+    selected_pieces = st.multiselect("Choisir la pièce", sorted(pieces["Piece"].unique()))
+
+    # Type de données (1 seule pour affichage)
+    type_donnee = st.selectbox("Type de donnée à afficher", ("Température_Celsius", "Humidité_Relative"))
+
+    if st.button("Afficher les données"):
+        filtres = []
+        if annees:
+            filtres.append(f"strftime('%Y', Horodatage) IN ({','.join(f'\"{a}\"' for a in annees)})")
+        if mois:
+            filtres.append(f"strftime('%m', Horodatage) IN ({','.join(f'\"{m}\"' for m in mois)})")
+        if jours:
+            filtres.append(f"strftime('%d', Horodatage) IN ({','.join(f'\"{j}\"' for j in jours)})")
+        if selected_pieces:
+            filtres.append(f"Piece IN ({','.join(f'\"{p}\"' for p in selected_pieces)})")
+
+        requete_donnees = f"""
+            SELECT * 
+            FROM TemperaturePiece
+            WHERE {' AND '.join(filtres)}
+        """
+
+        try:
+            df = pd.read_sql(requete_donnees, conn)
+        except Exception as e:
+            st.error(f"Erreur lors de la récupération des données : {e}")
+            return
+
+        if df.empty:
+            st.warning("Aucune donnée trouvée pour les critères sélectionnés.")
+        else:
+            st.write("Aperçu des données filtrées :")
+            st.dataframe(df)
+
+            # Visualisation
+            st.subheader("Graphique de la donnée choisie")
+            fig, ax = plt.subplots(figsize=(10, 6))
+            sns.lineplot(data=df, x="Horodatage", y=type_donnee, hue="Piece", ax=ax)
+            ax.set_title(f"{type_donnee} - Données agrégées")
+            ax.set_xlabel("Horodatage")
+            ax.set_ylabel("Valeur")
+            plt.xticks(rotation=45)
+            st.pyplot(fig)
+
+            # Télécharger le graphique
+            st.download_button(
+                label="Télécharger le graphique",
+                data=fig_to_bytes(fig),
+                file_name=f"{type_donnee}_graph.png",
+                mime="image/png"
+            )
+
+
+
+def fig_to_bytes(fig):
+    """Convertit un graphique Matplotlib en bytes pour le téléchargement."""
+    from io import BytesIO
+    img_bytes = BytesIO()
+    fig.savefig(img_bytes, format="png")
+    img_bytes.seek(0)
+    return img_bytes.read()
 
 
 
