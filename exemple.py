@@ -8,6 +8,16 @@ st.markdown("""
 Dans le cadre de votre candidature, certaines de vos données personnelles sont collectées. 
 Conformément au **Règlement Général sur la Protection des Données (RGPD)** et à la **loi Informatique et Libertés**, 
 nous vous informons ci-dessous de l'usage de vos données et de vos droits.
+Nous respectons votre droit à la vie privée
+
+Avec votre accord, GRDF et ses partenaires utilisent des cookies pour collecter et stocker des informations anonymisées lors de la consultation de ce site afin d’en assurer le bon fonctionnement, mesurer l’audience, personnaliser les contenus et afficher des publicités personnalisées.
+
+Cliquez sur le bouton « Tout accepter » pour consentir à toutes ces utilisations, ou sur le lien « Continuer sans accepter » pour refuser toutes ces utilisations ou « Paramétrer » pour en savoir plus sur les finalités et/ou en refuser tout ou partie.
+
+Vous pourrez à tout moment modifier vos choix en cliquant sur le lien « Gestion des cookies » en bas de page.
+
+
+
 """)
 
 st.header("📌 Responsable du traitement")

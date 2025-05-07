@@ -34,7 +34,6 @@ def get_Historical_weather_data(ville, start_date, end_date):
     """
     Récupère les données météorologiques archivées pour une ville donnée, les insère dans une base de données SQLite,
     et ajoute des informations géographiques dans une autre table avec une relation par ID ville.
-    
     Parameters:
         ville (str): Nom de la ville.
         start_date (str): Date de début au format 'YYYY-MM-DD'.
@@ -57,7 +56,8 @@ def get_Historical_weather_data(ville, start_date, end_date):
         # Étape 2 : Configuration du client Open-Meteo avec cache et gestion des erreurs
         cache_session = requests_cache.CachedSession('.cache', expire_after=-1)
         retry_session = retry(cache_session, retries=5, backoff_factor=0.2)
-        openmeteo = openmeteo_requests.Client(session=retry_session)  # Utilisation du client correct
+        openmeteo = openmeteo_requests.Client(session=retry_session)  
+        # Utilisation du client correct
 
         # Étape 3 : Définition des paramètres pour l'API Open-Meteo
         url = url_Meteo
