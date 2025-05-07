@@ -5,7 +5,8 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException
 from webdriver_manager.chrome import ChromeDriverManager
-
+from selenium.webdriver.remote.webdriver import WebDriver
+from datetime import datetime
 import time
 import os
 import re
@@ -78,7 +79,6 @@ def accept_cookies(driver, max_clicks=3):
     except TimeoutException:
         print("⚠️ Aucun deuxième bouton 'Tout accepter' trouvé.")
 
-
 def analyze_page(driver):
     print("📄 Titre de la page :", driver.title)
     print("📄 URL actuelle :", driver.current_url)
@@ -135,6 +135,40 @@ def connexion(driver, url_grdf, grdf_email, grdf_password):
         save_debug_html(driver)
         return False
 
+def save_screenshot_with_date(driver: WebDriver, target: str = "full", 
+                               numero_pce: str = "unknown", 
+                               label: str = "Capture"):
+    """
+    Enregistre une capture d'écran, soit de la page complète soit d'une section spécifique.
+    :param driver: WebDriver Selenium
+    :param target: "full" pour toute la page, ou XPATH/CSS pour un élément
+    :param numero_pce: Identifiant pour nommer la capture (ex : numéro PCE)
+    :param label: Nom logique de la section (ex : "TableauBord", "GraphConso", etc.)
+    """
+    try:
+        # Format de la date
+        date_str = datetime.now().strftime("%Y-%m-%d")
+        # Nom de fichier structuré
+        filename = f"{label}_{numero_pce}_{date_str}.png"
+
+        if target == "full":
+            driver.save_screenshot(filename)
+        else:
+            # Identifier l'élément cible
+            try:
+                if target.startswith("//"):
+                    element = driver.find_element("xpath", target)
+                else:
+                    element = driver.find_element("css selector", target)
+                element.screenshot(filename)
+            except Exception as e:
+                print(f"⚠️ Échec de la capture ciblée : {e}")
+                return
+
+        print(f"🖼️ Capture enregistrée : {filename}")
+    except Exception as e:
+        print(f"❌ Erreur lors de la sauvegarde de la capture : {e}")
+
 #______________________________________________________________
 
 driver = setup_driver()
@@ -143,24 +177,13 @@ driver.delete_all_cookies()
 try:
     success = connexion(driver, url_grdf, grdf_email, grdf_password)
 
-    if success:
-        WebDriverWait(driver, 60).until(
-            EC.presence_of_element_located((By.XPATH, "//h1[contains(text(), 'Tableau de bord')]"))
-        )
-        print("✅ Connexion confirmée sur le tableau de bord :", driver.title)
+    try:
+        # Vérification du nom du compteur
+        alias_element = driver.find_element(By.CSS_SELECTOR, "span.pceAlias")
+        alias_text = alias_element.text.strip()
+        print("🏠 Nom du compteur :", alias_text)
 
-        # 🔍 Nom du compteur
-        try:
-            alias_element = driver.find_element(By.CSS_SELECTOR, "span.pceAlias")
-            alias_text = alias_element.text.strip()
-            print("🏠 Nom du compteur :", alias_text)
-        except Exception as e:
-            print("❌ Erreur nom compteur :", str(e))
-            print("🔎 Affichage de tous les spans disponibles pour debug :")
-            for s in driver.find_elements(By.TAG_NAME, "span")[:10]:
-                print("➡️", s.get_attribute("class"), ":", s.text.strip())
-
-        # 🔍 Numéro PCE
+        # Recherche du numéro PCE
         try:
             pce_element = None
             candidates = [
@@ -188,15 +211,20 @@ try:
                 print("✅ Numéro PCE nettoyé :", numero_pce)
             else:
                 print("⚠️ Numéro PCE non trouvé dans le texte :", pce_text)
+                numero_pce = "inconnu"  # Assurez-vous de définir un défaut si le numéro PCE est introuvable
 
         except Exception as e:
             print("❌ Erreur numéro PCE :", str(e))
-            print("🔎 Tous les paragraphes disponibles pour debug :")
-            for p in driver.find_elements(By.TAG_NAME, "p")[:10]:
-                print("➡️", p.get_attribute("class"), ":", p.text.strip())
+            numero_pce = "inconnu"  # Assurez-vous de définir un défaut en cas d'erreur
 
-        driver.save_screenshot("screenshot.png")
-        print("🖼️ Capture d'écran enregistrée : screenshot.png")
+        # Appel de la fonction pour capturer la capture d'écran
+        save_screenshot_with_date(driver, target="full", numero_pce=numero_pce, label="TableauBord")
+
+        # Capture d'une section spécifique (exemple en XPath)
+        save_screenshot_with_date(driver, target="//div[@class='m-auto mt-5']", numero_pce=numero_pce, label="GraphConso")
+
+    except Exception as e:
+        print("❌ Erreur générale :", str(e))
 
 finally:
     input("\n🛑 Appuie sur [Entrée] pour fermer le navigateur...")
