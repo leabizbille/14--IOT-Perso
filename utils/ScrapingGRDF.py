@@ -4,6 +4,7 @@ import re
 from dotenv import load_dotenv
 from .functions import setup_driver, connexion, save_screenshot_with_date
 
+#Projets\14- IOT Perso> python -m utils.ScrapingGRDF
 
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
