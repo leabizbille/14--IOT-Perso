@@ -2,20 +2,13 @@ import time
 import os
 import re
 from dotenv import load_dotenv
+from .functions import setup_driver, connexion, save_screenshot_with_date
 
-from utils import (setup_driver,
-    wait_element,
-    save_debug_html,
-    accept_cookies,
-    analyze_page,
-    connexion,
-    save_screenshot_with_date
-)
 
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-________________________
+
 
 load_dotenv()
 grdf_email = os.getenv("EMAIL_GRDF")
