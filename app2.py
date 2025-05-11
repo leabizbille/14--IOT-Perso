@@ -100,18 +100,18 @@ elif menu_principal == "🌍 Météo":
         page_Meteo()
 
 elif menu_principal == "📊 Insertion de données externes":
-    menu_donnees = st.sidebar.selectbox("🔌 Données externes", ["Page Enedis", "Page GDF"])
+    menu_donnees = st.sidebar.selectbox("🔌 Données externes", ["Page Enedis", "Page GRDF"])
     if menu_donnees == "Page Enedis":
         page_Enedis()
-    elif menu_donnees == "Page GDF":
+    elif menu_donnees == "Page GRDF":
         page_Gaz()
 
 elif menu_principal == "🌡️ Températures":
     menu_temperatures = st.sidebar.selectbox("📈 Températures des pièces", 
-                                             ["GoveeWifi Temperature", "GoveeBluetooth Temperature"])
+                                             ["GoveeWifi Temperature", "Visualisation des Temperatures"])
     if menu_temperatures == "GoveeWifi Temperature":
         page_GoveeH5179()
-    elif menu_temperatures == "GoveeBluetooth Temperature":
+    elif menu_temperatures == "Visualisation des Temperatures":
         page_visualisation_Govee()
 
 # --- Déconnexion ---

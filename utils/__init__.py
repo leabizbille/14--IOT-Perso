@@ -7,7 +7,14 @@ from .functions import (
     extraire_piece,
     importer_csv_GAZ_bdd,
     check_password,
-    nettoyer_Piece
+    nettoyer_Piece, 
+    setup_driver,
+    wait_element,
+    save_debug_html,
+    accept_cookies,
+    analyze_page,
+    connexion,
+    save_screenshot_with_date
 )
 
 from .functionsBDD import (
