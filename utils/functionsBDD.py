@@ -4,7 +4,7 @@ import os
 import pandas as pd
 import bcrypt
 from datetime import datetime
-import bcrypt
+
 
 # Charger les variables d'environnement une seule fois au début du script
 load_dotenv()
@@ -191,21 +191,18 @@ def recuperer_conso_data(conn):
         conn (sqlite3.Connection): Connexion à la base de données SQLite.
 
     Returns:
-        pd.DataFrame: Un DataFrame contenant les données de consommation avec les colonnes Horodatage, ValeurW, et ID_Batiment.
+        pd.DataFrame: Un DataFrame contenant les données de consommation avec les colonnes Horodatage, ValeurW, 
+        et ID_Batiment.
     """
     try:
         cursor = conn.cursor()
-
         # Exécution de la requête SQL pour récupérer les données
         cursor.execute("SELECT Horodatage, ValeurW, ID_Batiment FROM ConsoHeureElec")
-        
         # Récupérer les résultats et les convertir en DataFrame
         rows = cursor.fetchall()
         df = pd.DataFrame(rows, columns=["Horodatage", "ValeurW", "ID_Batiment"])
-
         # Convertir la colonne 'Horodatage' en format datetime
         df['Horodatage'] = pd.to_datetime(df['Horodatage'])
-
         return df
     except sqlite3.Error as e:
         print(f"Erreur SQLite lors de la récupération des données : {e}")

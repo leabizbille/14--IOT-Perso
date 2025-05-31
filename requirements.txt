@@ -31,6 +31,8 @@ bcrypt
 pytest
 pytest-mock
 
+fastapi
+uvicorn
 
 scikit-learn
 PyPDF2
