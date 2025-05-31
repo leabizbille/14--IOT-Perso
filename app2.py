@@ -18,6 +18,7 @@ from utils import (
     get_connection, 
     creer_table_utilisateur,
     page_visualisation_Govee,
+    page_API,
     traiter_donnees_Temperature_streamlit
 )
 
@@ -79,7 +80,8 @@ menu_options = [
     "🏠 Paramétrages du Batiment", 
     "🌍 Météo", 
     "📊 Insertion de données externes", 
-    "🌡️ Températures"
+    "🌡️ Températures",
+    "API"
 ]
 menu_principal = st.sidebar.radio("Sélectionnez :", menu_options)
 
@@ -113,6 +115,9 @@ elif menu_principal == "🌡️ Températures":
         page_GoveeH5179()
     elif menu_temperatures == "Visualisation des Temperatures":
         page_visualisation_Govee()
+
+elif menu_principal == "API":
+    page_API()
 
 # --- Déconnexion ---
 if st.sidebar.button("Se déconnecter"):

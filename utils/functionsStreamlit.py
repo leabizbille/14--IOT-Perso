@@ -6,6 +6,8 @@ from dotenv import load_dotenv
 from datetime import datetime
 import matplotlib.pyplot as plt
 import seaborn as sns
+import requests
+from io import BytesIO
 
 from utils import (
     importer_csv_dans_bdd, 
@@ -469,13 +471,67 @@ def page_Gaz():
     # Affichage du graphique
     afficher_graphiqueGaz(df, period)
 
+# PAGE APIimport streamlit as st
+import requests
 
-import streamlit as st
-import pandas as pd
-import sqlite3
-import seaborn as sns
-import matplotlib.pyplot as plt
-from io import BytesIO
+def page_API():
+    st.title("API")
+    st.info("Doc Swagger de l'API : http://127.0.0.1:8000/docs")
+
+    BASE_URL = "http://127.0.0.1:8000"
+
+    # Fonction pour interroger l’API FastAPI
+    def get_data(endpoint):
+        try:
+            response = requests.get(f"{BASE_URL}/{endpoint}")
+            response.raise_for_status()
+            return response.json().get("donnees", [])
+        except requests.exceptions.RequestException as e:
+            st.error(f"Erreur lors de la récupération des données depuis '{endpoint}': {e}")
+            return []
+
+    try:
+        # Interface avec onglets
+        onglets = st.tabs(["🔥 Gaz", "⚡ Électricité", "🌡️ Température"])
+
+        with onglets[0]:
+            st.subheader("Consommation de gaz (jour)")
+            data_gaz = get_data("DonneeGaz")
+            if data_gaz:
+                st.dataframe(data_gaz)
+            else:
+                st.info("Pas de données disponibles pour le gaz.")
+
+        with onglets[1]:
+            st.subheader("Consommation d'électricité (heure)")
+            data_elec = get_data("DonneeElectricite")
+            if data_elec:
+                st.dataframe(data_elec)
+            else:
+                st.info("Pas de données disponibles pour l'électricité.")
+
+        with onglets[2]:
+            st.subheader("Températures intérieures")
+            data_temp = get_data("TemperaturePiece")
+            if data_temp:
+                st.dataframe(data_temp)
+            else:
+                st.info("Pas de données disponibles pour la température.")
+
+    except Exception as e:
+        st.error(f"Une erreur est survenue dans l'affichage de la page API : {e}")
+
+
+
+
+
+
+
+
+
+
+
+
 
 def fig_to_bytes(fig):
     buf = BytesIO()
@@ -574,8 +630,6 @@ def page_visualisation_Govee():
                 file_name=f"{type_donnee}_graph.png",
                 mime="image/png"
             )
-
-
 
 def fig_to_bytes(fig):
     """Convertit un graphique Matplotlib en bytes pour le téléchargement."""
