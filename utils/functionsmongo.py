@@ -2,15 +2,15 @@ import pymongo
 import gridfs
 import os
 
-# a faire !
+
 
 # Connexion à MongoDB (assurez-vous d'avoir MongoDB en marche sur votre machine ou sur un serveur)
 client = pymongo.MongoClient("mongodb://localhost:27017/")
-db = client["edf_db"]  # Nom de la base de données
+db = client["IOT"]  # Nom de la base de données
 fs = gridfs.GridFS(db)  # Accès à GridFS
 
 # Dossier où les PDFs sont stockés
-pdf_folder = "pdfs"
+pdf_folder = r"1-Documents\pdfs"
 
 # Insérer chaque fichier PDF dans GridFS
 for pdf_filename in os.listdir(pdf_folder):
