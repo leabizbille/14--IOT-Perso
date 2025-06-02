@@ -70,7 +70,6 @@ def import_csv_to_gridfs(db, temperature_folder, collection_name="Govee"):
         with open(csv_path, "rb") as csv_file:
             fs.put(csv_file.read(), filename=csv_filename)
             print(f"✅ {csv_filename} inséré dans GridFS ({collection_name})")
-
 # Fichiers csv de govee
 def import_png_to_gridfs(db, GRDF_folder, collection_name="GRDF"):
     """
@@ -108,5 +107,20 @@ db = client[db_name]
 import_pdfs_to_gridfs(db, pdf_folder, collection_name="EDF")
 import_csv_to_gridfs (db,temperature_folder, collection_name ="Govee")
 import_png_to_gridfs (db,GRDF_folder, collection_name ="GRDF")
+
 # Fermeture
 client.close()
+
+def download_files_from_gridfs(db, destination_folder, collection_name="Govee"):
+    import gridfs
+
+    fs = gridfs.GridFS(db, collection=collection_name)
+
+    if not os.path.exists(destination_folder):
+        os.makedirs(destination_folder)
+
+    for file in fs.find():
+        file_path = os.path.join(destination_folder, file.filename)
+        with open(file_path, "wb") as f:
+            f.write(file.read())
+        print(f"📥 {file.filename} téléchargé dans {destination_folder}")

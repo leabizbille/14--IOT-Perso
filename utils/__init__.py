@@ -42,9 +42,7 @@ from .functionsBDD import (
 
 from .GoveeWifiInsert import traiter_donnees_Temperature_streamlit
 from .govee_h5075 import GoveeThermometerHygrometer, Alias, recorded_data, device_info 
-
 from .Meteo import get_Historical_weather_data
-
 from .visualizations import afficher_graphique, afficher_graphiqueGaz
 
 from .functionsStreamlit import (
@@ -58,4 +56,12 @@ from .functionsStreamlit import (
     page_visualisation_Govee,
     page_API,
     page_parametres
+)
+
+from .functionsmongo import (
+    import_pdfs_to_gridfs,
+    import_csv_to_gridfs,
+    import_png_to_gridfs,
+    download_files_from_gridfs,
+    temperature_folder
 )

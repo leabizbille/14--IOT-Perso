@@ -8,6 +8,12 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import requests
 from io import BytesIO
+from dotenv import load_dotenv
+import pymongo
+
+from utils.functionsmongo import (import_csv_to_gridfs, 
+                                  download_files_from_gridfs,
+                                  temperature_folder)
 
 from utils import (
     importer_csv_dans_bdd, 
@@ -36,6 +42,17 @@ from utils import (
 # Récupérer les variables d'environnement
 base_bd = os.getenv("NOM_BASE")
 url_Meteo = os.getenv("URL_METEO")
+
+# Mongo
+# Connexion MongoDB
+
+mongo_uri = os.getenv("MONGO_URI")
+db_name = os.getenv("DB_NAME", "Documents")
+client = pymongo.MongoClient(mongo_uri)
+db = client[db_name]
+pdf_folder = r"1-Documents\pdfs"
+temperature_folder = r"1-Documents\Fichiers Temperature"
+GRDF_folder = r"1-Documents\GRDF"
 
 # Vérification du nom de la base
 if not base_bd:
@@ -421,14 +438,25 @@ def page_GoveeH5179():
             else:
                 st.error("❌ Une erreur est survenue lors de l'insertion des données.")
 
-            # Bouton de téléchargement
+                        # Bouton de téléchargement
             csv = df_resultat.to_csv(index=False).encode('utf-8')
             st.download_button(
                 label="📥 Télécharger le fichier combiné",
                 data=csv,
                 file_name=f"donnees_combinees_Temperature_{datetime.now().strftime('%Y-%m-%d')}.csv",
                 mime="text/csv"
-            )
+            )  
+
+            # 📤 Bouton – Upload vers MongoDB
+            if st.button("📤 Envoyer les CSV dans MongoDB"):
+                import_csv_to_gridfs(db, temperature_folder, collection_name="Govee")
+                st.success("✅ CSV importés avec succès dans MongoDB !")
+
+            # 📥 Bouton – Télécharger depuis MongoDB
+            if st.button("📥 Récupérer les fichiers depuis MongoDB"):
+                download_files_from_gridfs(db, temperature_folder, collection_name="Govee")
+                st.success(f"✅ Fichiers récupérés dans le dossier : {chemin_sortie}")
+
 
 def page_Gaz():
     st.title("Sélection du bâtiment :")
@@ -472,8 +500,6 @@ def page_Gaz():
     afficher_graphiqueGaz(df, period)
 
 # PAGE APIimport streamlit as st
-import requests
-
 def page_API():
     st.title("API")
     st.info("Doc Swagger de l'API : http://127.0.0.1:8000/docs")
