@@ -10,6 +10,7 @@ mongo_uri = os.getenv("MONGO_URI")
 db_name = os.getenv("DB_NAME", "Documents")
 pdf_folder = r"1-Documents\pdfs"
 temperature_folder = r"1-Documents\Fichiers Temperature"
+GRDF_folder = r"1-Documents\GRDF"
 
 #pdf EDF du scraping
 def import_pdfs_to_gridfs(db, pdf_folder, collection_name="EDF"):
@@ -40,7 +41,6 @@ def import_pdfs_to_gridfs(db, pdf_folder, collection_name="EDF"):
         with open(pdf_path, "rb") as pdf_file:
             fs.put(pdf_file.read(), filename=pdf_filename)
             print(f"✅ {pdf_filename} inséré dans GridFS ({collection_name})")
-
 # Fichiers csv de govee
 def import_csv_to_gridfs(db, temperature_folder, collection_name="Govee"):
     """
@@ -71,7 +71,34 @@ def import_csv_to_gridfs(db, temperature_folder, collection_name="Govee"):
             fs.put(csv_file.read(), filename=csv_filename)
             print(f"✅ {csv_filename} inséré dans GridFS ({collection_name})")
 
+# Fichiers csv de govee
+def import_png_to_gridfs(db, GRDF_folder, collection_name="GRDF"):
+    """
+    Importe les fichiers png d'un dossier local dans GridFS (MongoDB),
+    en évitant les doublons de nom de fichier.
+    Args:
+        db (pymongo.database.Database): instance de base MongoDB.
+        GRDF_folder (str): chemin du dossier contenant les CSVs.
+        collection_name (str): nom logique de la collection GridFS.
+    """
+    if not os.path.exists(GRDF_folder):
+        raise FileNotFoundError(f"📂 Le dossier {GRDF_folder} est introuvable.")
 
+    fs = gridfs.GridFS(db, collection=collection_name)
+
+    for png_filename in os.listdir(GRDF_folder):
+        if not png_filename.lower().endswith(".png"):
+            continue  # Ignore les fichiers non-png
+
+        # Éviter les doublons
+        if fs.find_one({"filename": png_filename}):
+            print(f"⏩ {png_filename} déjà présent, ignoré.")
+            continue
+
+        png_path = os.path.join(GRDF_folder , png_filename)
+        with open(png_path, "rb") as png_file:
+            fs.put(png_file.read(), filename=png_filename)
+            print(f"✅ {png_filename} inséré dans GridFS ({collection_name})")
 
 # Connexion MongoDB
 client = pymongo.MongoClient(mongo_uri)
@@ -80,5 +107,6 @@ db = client[db_name]
 # Appel de la fonction
 import_pdfs_to_gridfs(db, pdf_folder, collection_name="EDF")
 import_csv_to_gridfs (db,temperature_folder, collection_name ="Govee")
+import_png_to_gridfs (db,GRDF_folder, collection_name ="GRDF")
 # Fermeture
 client.close()
