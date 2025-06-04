@@ -14,6 +14,7 @@ from .functions import (
     accept_cookies,
     analyze_page,
     connexion,
+    fig_to_bytes,
     save_screenshot_with_date
 )
 

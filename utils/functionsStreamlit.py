@@ -11,10 +11,11 @@ from io import BytesIO
 from dotenv import load_dotenv
 import pymongo
 
+ # --------------------------------------------------------------
 from utils.functionsmongo import (import_csv_to_gridfs, 
                                   download_files_from_gridfs,
                                   temperature_folder)
-
+ # --------------------------------------------------------------
 from utils import (
     importer_csv_dans_bdd, 
     traiter_donnees_Temperature_streamlit,
@@ -30,6 +31,7 @@ from utils import (
     afficher_graphiqueGaz,
     get_connection,
     get_user,
+    fig_to_bytes,
     check_password,
     creer_table_consoJour_GAZ,
     importer_csv_GAZ_bdd,
@@ -37,23 +39,27 @@ from utils import (
     get_Historical_weather_data
 )
 
-#______________________________________________________________
+ # --------------------------------------------------------------
 
 # Récupérer les variables d'environnement
 base_bd = os.getenv("NOM_BASE")
 url_Meteo = os.getenv("URL_METEO")
-
-# Mongo
-# Connexion MongoDB
-
 mongo_uri = os.getenv("MONGO_URI")
 db_name = os.getenv("DB_NAME", "Documents")
+
+ # --------------------------------------------------------------
+
+# Données Mongo
 client = pymongo.MongoClient(mongo_uri)
 db = client[db_name]
+
+ # --------------------------------------------------------------
+
 pdf_folder = r"1-Documents\pdfs"
 temperature_folder = r"1-Documents\Fichiers Temperature"
 GRDF_folder = r"1-Documents\GRDF"
 
+ # --------------------------------------------------------------
 # Vérification du nom de la base
 if not base_bd:
     raise ValueError("Erreur : la variable d'environnement NOM_BASE n'est pas définie.")
@@ -65,8 +71,11 @@ if conn is None:
 
 # ✅ Connexion réussie, on peut maintenant utiliser `conn`
 cursor = conn.cursor()
-#_________________________
+ # --------------------------------------------------------------
 
+ # --------------------------------------------------------------
+  # ----------------------PAGES STREAMLIT----------------------------------------
+   # --------------------------------------------------------------
 # Page de connexion
 def page_connexion(conn):
     # Initialisation session
@@ -115,7 +124,6 @@ def page_connexion(conn):
             st.session_state.username = ""
             st.session_state.role = ""
             st.rerun()
-
 def page_creation_compte(conn):
     st.title("🆕 Créer un compte")
 
@@ -222,7 +230,6 @@ def page_parametres():
     
     st.subheader("Vos bâtiments enregistrés")
     st.dataframe(df_batiment)
-
 def page_installation():
     st.title("Configuration des pièces")
     creer_table_piece(conn)
@@ -456,8 +463,7 @@ def page_GoveeH5179():
             if st.button("📥 Récupérer les fichiers depuis MongoDB"):
                 download_files_from_gridfs(db, temperature_folder, collection_name="Govee")
                 st.success(f"✅ Fichiers récupérés dans le dossier : {chemin_sortie}")
-
-
+# --- Fonction : Page GZ
 def page_Gaz():
     st.title("Sélection du bâtiment :")
 

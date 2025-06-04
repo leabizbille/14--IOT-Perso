@@ -315,5 +315,14 @@ def save_screenshot_with_date(driver: WebDriver, target: str = "full",
     except Exception as e:
         print(f"❌ Erreur lors de la sauvegarde de la capture : {e}")
 
-#______________________________________________________________
+#_______Conversion Graph pour téléchargement_______________________________________________________
 
+def fig_to_bytes(fig):
+    """Convertit un graphique Matplotlib en bytes pour le téléchargement."""
+    from io import BytesIO
+    img_bytes = BytesIO()
+    fig.savefig(img_bytes, format="png")
+    img_bytes.seek(0)
+    return img_bytes.read()
+
+#______________________________________________________________
