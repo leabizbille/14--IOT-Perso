@@ -10,6 +10,7 @@ import requests
 from io import BytesIO
 from dotenv import load_dotenv
 import pymongo
+from datetime import date
 
  # --------------------------------------------------------------
 from utils.functionsmongo import (import_csv_to_gridfs, 
@@ -36,6 +37,7 @@ from utils import (
     creer_table_consoJour_GAZ,
     importer_csv_GAZ_bdd,
     inserer_donnees_temperature_piece,
+    insert_user,
     get_Historical_weather_data
 )
 
@@ -132,7 +134,7 @@ def page_creation_compte(conn):
         password = st.text_input("Mot de passe", type="password")
         confirm = st.text_input("Confirmer le mot de passe", type="password")
         role = st.selectbox("Rôle", ["user", "admin"])
-        submit = st.form_submit_button("Créer le compte")
+        submit = st.form_submit_button("Continuer")
 
         if submit:
             if not username or not password:
@@ -140,17 +142,19 @@ def page_creation_compte(conn):
             elif password != confirm:
                 st.error("Les mots de passe ne correspondent pas.")
             else:
-                success = insert_user(conn, username, password, role)
-                if success:
-                    st.success("Compte créé avec succès ✅")
-                    st.session_state.page = "login"
-                    st.rerun()
-                else:
-                    st.error("Erreur lors de la création du compte. Peut-être un utilisateur existant ?")
+                # Stocke les données temporairement
+                st.session_state.temp_user = {
+                    "username": username,
+                    "password": password,
+                    "role": role
+                }
+                st.session_state.page = "rgpd"
+                st.rerun()
 
     if st.button("⬅️ Retour à la connexion"):
         st.session_state.page = "login"
         st.rerun()
+
 
 # --- Fonction : Page de gestion des bâtiments ---
 def page_parametres():
@@ -553,6 +557,48 @@ def page_API():
     except Exception as e:
         st.error(f"Une erreur est survenue dans l'affichage de la page API : {e}")
 
+def page_rgpd(conn):
+    st.title("🔒 Consentement RGPD")
+
+    col1, col2 = st.columns([2, 1])
+    with col1:
+        st.markdown("""
+        <div style='text-align: justify'>
+        En créant un compte sur notre plateforme IoT, certaines données personnelles seront collectées.<br><br>
+        Nous respectons le <strong>RGPD</strong> et la <strong>loi Informatique et Libertés</strong>.<br><br>
+        Vos données (conso, température, formulaires bâtiments) servent uniquement à créer un modèle d’IA pour mieux gérer les consommations.  
+        Elles ne sont partagées qu’avec les administrateurs, pour une durée de 1 an max.<br><br>
+        Pour toute question : <a href='mailto:madame_x@gmail.com'>madame_x@gmail.com</a><br>
+        🔗 <a href='https://www.cnil.fr' target='_blank'>Plus d'infos</a>
+        </div>
+        """, unsafe_allow_html=True)
+
+    with col2:
+        with st.form("rgpd_form"):
+            today = st.date_input("Date", value=date.today())
+            agree_1 = st.checkbox("✅ J’accepte l'utilisation de mes données.")
+            agree_2 = st.checkbox("✅ Je consens au traitement automatisé.")
+            submit = st.form_submit_button("Valider le consentement")
+
+        if submit:
+            if agree_1 and agree_2:
+                # Récupère les infos temporaires
+                user = st.session_state.get("temp_user", {})
+                if user:
+                    #from insert_logic import insert_user  # remplace selon ton architecture
+                    success = insert_user(conn, user["username"], user["password"], user["role"])
+                    if success:
+                        st.success("🎉 Compte créé avec succès.")
+                        st.session_state.page = "login"
+                        st.rerun()
+                    else:
+                        st.error("Erreur lors de la création du compte.")
+                        st.session_state.page = "creation"
+                        st.rerun()
+                else:
+                    st.error("Erreur : informations utilisateur manquantes.")
+            else:
+                st.error("Vous devez accepter les deux conditions pour créer un compte.")
 
 
 

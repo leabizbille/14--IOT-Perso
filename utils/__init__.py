@@ -56,6 +56,7 @@ from .functionsStreamlit import (
     page_connexion,
     page_visualisation_Govee,
     page_API,
+    page_rgpd,
     page_parametres
 )
 

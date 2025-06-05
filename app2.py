@@ -19,6 +19,7 @@ from utils import (
     creer_table_utilisateur,
     page_visualisation_Govee,
     page_API,
+    page_rgpd,
     traiter_donnees_Temperature_streamlit
 )
 
@@ -64,10 +65,13 @@ if not st.session_state.logged_in:
     if "page" not in st.session_state:
         st.session_state.page = "login"
 
+    # Logique de navigation entre les étapes
     if st.session_state.page == "login":
         page_connexion(conn)
     elif st.session_state.page == "register":
         page_creation_compte(conn)
+    elif st.session_state.page == "rgpd":
+        page_rgpd(conn)
 
     st.stop()  # Ne va pas plus loin tant qu'on n'est pas connecté
 
