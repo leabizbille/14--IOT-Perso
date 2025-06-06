@@ -4,6 +4,8 @@ import os
 import pandas as pd
 import bcrypt
 from datetime import datetime
+import logging
+import re
 
 
 # Charger les variables d'environnement une seule fois au début du script
@@ -44,7 +46,7 @@ def get_connection():
 # --- Création de la table utilisateur ---
 def creer_table_utilisateur(conn):
     """
-    Crée la table 'utilisateur' si elle n'existe pas déjà.
+    Crée la table 'utilisateur' si elle n'existe pas déjà, avec les champs RGPD inclus.
     
     Paramètres :
         conn (sqlite3.Connection) : connexion active à la base SQLite.
@@ -61,7 +63,9 @@ def creer_table_utilisateur(conn):
                     Horodatage TEXT,
                     username TEXT UNIQUE,
                     password TEXT,
-                    role TEXT
+                    role TEXT,
+                    date_consentement TEXT,
+                    consentement BOOLEAN DEFAULT 0
                 )
             ''')
         return True
@@ -72,29 +76,21 @@ def creer_table_utilisateur(conn):
         print(f"Erreur inattendue : {e}")
         return False
 
-# --- Ajout d'un utilisateur ---
-def insert_user(conn, username, password, role):
-    """
-    Ajoute un utilisateur à la base avec un mot de passe haché.
 
-    Paramètres :
-        conn (sqlite3.Connection) : connexion active à la base SQLite.
-        username (str) : identifiant de l'utilisateur.
-        password (str) : mot de passe en clair à hacher.
-        role (str) : rôle de l'utilisateur (ex : 'admin', 'user').
-    
-    Retour :
-        bool : True si l'insertion a réussi, False sinon.
-    """
+# --- Ajout d'un utilisateur ---import sqlite3
+
+
+logging.basicConfig(filename='app.log', level=logging.INFO)
+
+def insert_user(conn, username, password, role, consentement=False, date_consentement=None):
     try:
         cursor = conn.cursor()
         hashed = bcrypt.hashpw(password.encode(), bcrypt.gensalt())
-        horodatage = datetime.now().isoformat(timespec='seconds')  # Format ISO 8601
-        
+        horodatage = datetime.now().isoformat(timespec='seconds')
         cursor.execute('''
-            INSERT INTO utilisateur (Horodatage, username, password, role) 
-            VALUES (?, ?, ?, ?)
-        ''', (horodatage, username, hashed, role))
+            INSERT INTO utilisateur (Horodatage, username, password, role, consentement, date_consentement)
+            VALUES (?, ?, ?, ?, ?, ?)
+        ''', (horodatage, username, hashed, role, consentement, date_consentement))
         conn.commit()
         return True
     except sqlite3.IntegrityError:

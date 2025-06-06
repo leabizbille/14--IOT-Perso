@@ -558,9 +558,11 @@ def page_API():
         st.error(f"Une erreur est survenue dans l'affichage de la page API : {e}")
 
 def page_rgpd(conn):
-    st.title("🔒 Consentement RGPD")
+    st.set_page_config(page_title="Protection des données Candidats", layout="wide")
+    st.title("🔒 Données personnelles")
 
     col1, col2 = st.columns([2, 1])
+
     with col1:
         st.markdown("""
         <div style='text-align: justify'>
@@ -573,42 +575,42 @@ def page_rgpd(conn):
         </div>
         """, unsafe_allow_html=True)
 
+        st.divider()
+
+        st.markdown("""
+        **Base légale :**  Votre consentement explicite (article 6.1.a du RGPD). En cas de traitement automatisé, l’article 22 s’applique.
+        **Finalité :**  Développer un modèle d’IA permettant d’optimiser les consommations et de comprendre les variations environnementales entre intérieur et extérieur.
+        """)
+
     with col2:
-        with st.form("rgpd_form"):
+        st.header("📝 Formulaire de consentement")
+        with st.form("consent_form"):
+            name = st.text_input("Nom et prénom")
+            password = st.text_input("Mot de passe", type="password")
+            role = st.selectbox("Rôle", ["user", "admin"])
             today = st.date_input("Date", value=date.today())
-            agree_1 = st.checkbox("✅ J’accepte l'utilisation de mes données.")
-            agree_2 = st.checkbox("✅ Je consens au traitement automatisé.")
-            submit = st.form_submit_button("Valider le consentement")
+            agree_1 = st.checkbox("J’accepte que mes données soient utilisées.")
+            agree_2 = st.checkbox("Je consens au traitement automatisé de mes données.")
+            submitted = st.form_submit_button("Soumettre")
 
-        if submit:
+        if submitted:
             if agree_1 and agree_2:
-                # Récupère les infos temporaires
-                user = st.session_state.get("temp_user", {})
-                if user:
-                    #from insert_logic import insert_user  # remplace selon ton architecture
-                    success = insert_user(conn, user["username"], user["password"], user["role"])
-                    if success:
-                        st.success("🎉 Compte créé avec succès.")
-                        st.session_state.page = "login"
-                        st.rerun()
-                    else:
-                        st.error("Erreur lors de la création du compte.")
-                        st.session_state.page = "creation"
-                        st.rerun()
+                success = insert_user(
+                    conn,
+                    username=name,
+                    password=password,
+                    role=role,
+                    consentement=True,
+                    date_consentement=today.isoformat()
+                )
+                if success:
+                    st.success("✅ Consentement enregistré. Compte créé.")
+                    st.session_state.page = "login"
+                    st.rerun()
                 else:
-                    st.error("Erreur : informations utilisateur manquantes.")
+                    st.error("Erreur : utilisateur déjà existant ?")
             else:
-                st.error("Vous devez accepter les deux conditions pour créer un compte.")
-
-
-
-
-
-
-
-
-
-
+                st.error("⚠️ Vous devez accepter les deux conditions.")
 
 
 def fig_to_bytes(fig):
