@@ -67,3 +67,13 @@ from .functionsmongo import (
     download_files_from_gridfs,
     temperature_folder
 )
+
+from .api import (
+    fetch_data_from_db,
+    fetch_filtered_temperature,
+    fetch_filtered_electricite,
+    get_gaz,
+    get_temperature_simple,
+    get_temperature_piece,
+    get_electricite
+)

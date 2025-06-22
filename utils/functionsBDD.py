@@ -78,8 +78,6 @@ def creer_table_utilisateur(conn):
 
 
 # --- Ajout d'un utilisateur ---import sqlite3
-
-
 logging.basicConfig(filename='app.log', level=logging.INFO)
 
 def insert_user(conn, username, password, role, consentement=False, date_consentement=None):

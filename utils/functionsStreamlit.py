@@ -76,8 +76,9 @@ cursor = conn.cursor()
  # --------------------------------------------------------------
 
  # --------------------------------------------------------------
-  # ----------------------PAGES STREAMLIT----------------------------------------
-   # --------------------------------------------------------------
+  # ----------------------PAGES STREAMLIT------------------------
+   # ------------------------------------------------------------
+
 # Page de connexion
 def page_connexion(conn):
     # Initialisation session
@@ -509,46 +510,97 @@ def page_Gaz():
     # Affichage du graphique
     afficher_graphiqueGaz(df, period)
 
-# PAGE APIimport streamlit as st
+import streamlit as st
+import requests
+
 def page_API():
-    st.title("API")
-    st.info("Doc Swagger de l'API : http://127.0.0.1:8000/docs")
+    st.title("🔌 API IDOCS")
+    st.info("Documentation Swagger : [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)")
 
     BASE_URL = "http://127.0.0.1:8000"
 
-    # Fonction pour interroger l’API FastAPI
-    def get_data(endpoint):
+    def get_data(endpoint: str, params: dict = None):
         try:
-            response = requests.get(f"{BASE_URL}/{endpoint}")
+            response = requests.get(f"{BASE_URL}/{endpoint}", params=params)
             response.raise_for_status()
             return response.json().get("donnees", [])
         except requests.exceptions.RequestException as e:
-            st.error(f"Erreur lors de la récupération des données depuis '{endpoint}': {e}")
+            st.error(f"Erreur lors de la récupération des données depuis `{endpoint}` : {e}")
             return []
 
     try:
-        # Interface avec onglets
         onglets = st.tabs(["🔥 Gaz", "⚡ Électricité", "🌡️ Température"])
 
+        # Onglet GAZ
         with onglets[0]:
-            st.subheader("Consommation de gaz (jour)")
-            data_gaz = get_data("DonneeGaz")
+            st.subheader("Consommation de gaz (journalière)")
+            col1, col2 = st.columns(2)
+            with col1:
+                date_debut = st.date_input("Date début", value=None, key="gaz_debut")
+            with col2:
+                date_fin = st.date_input("Date fin", value=None, key="gaz_fin")
+
+            params = {}
+            if date_debut:
+                params["date_debut"] = date_debut.isoformat()
+            if date_fin:
+                params["date_fin"] = date_fin.isoformat()
+
+            data_gaz = get_data("gaz", params)
             if data_gaz:
                 st.dataframe(data_gaz)
             else:
-                st.info("Pas de données disponibles pour le gaz.")
+                st.info("Pas de données disponibles pour la période sélectionnée.")
 
+        # Onglet ÉLECTRICITÉ
         with onglets[1]:
-            st.subheader("Consommation d'électricité (heure)")
-            data_elec = get_data("DonneeElectricite")
+            st.subheader("Consommation d'électricité (horaire)")
+            col1, col2 = st.columns(2)
+            with col1:
+                start_date = st.date_input("Date début", value=None, key="elec_debut")
+            with col2:
+                end_date = st.date_input("Date fin", value=None, key="elec_fin")
+
+            params = {
+                "limit": 200,
+                "order_by": "Horodatage",
+                "order_dir": "asc"
+            }
+            if start_date:
+                params["start_date"] = start_date.isoformat()
+            if end_date:
+                params["end_date"] = end_date.isoformat()
+
+            data_elec = get_data("electricite", params)
             if data_elec:
                 st.dataframe(data_elec)
             else:
                 st.info("Pas de données disponibles pour l'électricité.")
 
+        # Onglet TEMPÉRATURE
         with onglets[2]:
-            st.subheader("Températures intérieures")
-            data_temp = get_data("TemperaturePiece")
+            st.subheader("Température intérieure (pièce)")
+            col1, col2 = st.columns(2)
+            with col1:
+                t_start = st.date_input("Date début", value=None, key="temp_debut")
+            with col2:
+                t_end = st.date_input("Date fin", value=None, key="temp_fin")
+
+            piece = st.text_input("Filtrer par pièce (optionnel)", key="temp_piece")
+
+            params = {
+                "limit": 200,
+                "order_by": "Horodatage",
+                "order_dir": "asc"
+            }
+            if t_start:
+                params["start_date"] = t_start.isoformat()
+            if t_end:
+                params["end_date"] = t_end.isoformat()
+            if piece:
+                params["piece"] = piece
+
+            data_temp = get_data("TemperaturePiece", params)
             if data_temp:
                 st.dataframe(data_temp)
             else:
@@ -556,6 +608,7 @@ def page_API():
 
     except Exception as e:
         st.error(f"Une erreur est survenue dans l'affichage de la page API : {e}")
+
 
 def page_rgpd(conn):
     st.set_page_config(page_title="Protection des données Candidats", layout="wide")
