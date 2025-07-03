@@ -10,17 +10,68 @@ Il repose sur une stack orientée Data Science et Data Engineering, combinant de
 Streamlit pour l’interface utilisateur, MongoDB (via GridFS) pour le stockage flexible des fichiers, ainsi qu’un 
 backend FastAPI pour exposer des points d’accès asynchrones.
 
-## 🚀 Lancement de l'application
+
 
 ### 🔧 Serveur FastAPI
 
 ```bash
-uvicorn main:app --reload --host=0.0.0.0
+uvicorn utils.api:app --reload --port 8000
 ```
+🌐 Doc auto	http://localhost:8000/docs
 
 ### Développement local avec FastAPI
 ```bash
-fastapi dev main.py
+fastapi utils.api.py
+
+# ⚙️ Mon token Bearer API ( depuis un .env )
+$API_KEY = "   "
+
+# ⚙️ URL de base de ton API FastAPI
+$BASE_URL = "http://localhost:8000"
+
+# ⚙️ En-têtes communs pour toutes les requêtes
+$headers = @{
+    Authorization = "Bearer $API_KEY"
+}
+
+# -------------------------------
+# TEST : Endpoint protégé `/test`
+# -------------------------------
+
+Write-Host "`n=== Test Endpoint Protégé `/test` ==="
+$response = Invoke-RestMethod -Uri "$BASE_URL/test" -Headers $headers -Method GET
+$response
+
+# -------------------------------
+# TEST : Endpoint filtré `/gaz/`
+# -------------------------------
+
+Write-Host "`n=== Test Endpoint `/gaz/` ==="
+$params = @{
+    date_debut = "2025-01-01"
+    date_fin   = "2025-01-31"
+}
+$response = Invoke-RestMethod -Uri "$BASE_URL/gaz/" -Headers $headers -Method GET -Body $params
+$response
+
+# -------------------------------
+# TEST : Endpoint filtré `/electricite`
+# -------------------------------
+
+Write-Host "`n=== Test Endpoint `/electricite` ==="
+$params = @{
+    start_date = "2025-01-01"
+    end_date   = "2025-01-31"
+    limit      = 10
+    offset     = 0
+    order_by   = "Horodatage"
+    order_dir  = "asc"
+}
+# Construire la query string dynamiquement
+$query = ($params.GetEnumerator() | ForEach-Object { "$($_.Key)=$($_.Value)" }) -join "&"
+$response = Invoke-RestMethod -Uri "$BASE_URL/electricite?$query" -Headers $headers -Method GET
+$response
+
 ```
 ### Libérer le port 8000 sous Windows, si besoin.
 
@@ -160,7 +211,8 @@ python -m utils.ScrapingGRDF     # Récupère les données GRDF (graphiques PNG)
 
 ---
 
-## 8️⃣ Lancement de l’application web (Streamlit)
+## 8️⃣ 🚀 Lancement de l'application web (Streamlit)
+## 
 
 ```bash
 streamlit run app2.py
