@@ -1,14 +1,17 @@
-from datetime import date
-from typing import List, Dict, Any, Optional
-from fastapi import FastAPI, Query, HTTPException
+from fastapi import FastAPI, Depends, HTTPException, status, Query
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel
 from dotenv import load_dotenv
-import os
+from typing import List, Dict, Any, Optional
 import sqlite3
+import os
+from datetime import date
 
 # --- Chargement des variables d’environnement ---
 load_dotenv()
 DB = os.getenv("NOM_BASE", "MaBase.db")
+API_KEY = os.getenv("API_KEY")
+#print(API_KEY)
 
 # --- Initialisation de l’app ---
 app = FastAPI(
@@ -22,20 +25,34 @@ app = FastAPI(
     ],
 )
 
+# --- Système d'authentification Bearer ---
+auth_scheme = HTTPBearer(auto_error=True)
+
+def verify_api_key(credentials: HTTPAuthorizationCredentials = Depends(auth_scheme)):
+    if credentials.credentials != API_KEY:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Clé API invalide"
+        )
+    return credentials.credentials
+
 # --- Modèle de réponse standard ---
 class DonneesReponse(BaseModel):
     donnees: List[Dict[str, Any]]
 
-# --- Fonctions génériques ---
+# --- Exemple route test ---
+@app.get("/test", tags=["Test"])
+def test_endpoint(token: str = Depends(verify_api_key)):
+    return {"message": "Authentification réussie", "token_utilisé": token}
+
+# --- Fonctions DB  ---
 def fetch_data_from_db(table: str, where_clause: Optional[str] = None, params: Optional[List[Any]] = None) -> List[Dict[str, Any]]:
     conn = sqlite3.connect(DB)
     conn.row_factory = sqlite3.Row
     cur = conn.cursor()
-
     query = f"SELECT * FROM {table}"
     if where_clause:
         query += f" WHERE {where_clause}"
-
     cur.execute(query, params or [])
     rows = cur.fetchall()
     conn.close()
@@ -122,25 +139,22 @@ def fetch_filtered_electricite(
     conn.close()
     return [dict(row) for row in rows]
 
-# --- Routes ---
-
+# --- Routes endpoints protégés par token ---
 @app.get("/gaz/", response_model=DonneesReponse, tags=["Gaz"], summary="Consommation journalière de gaz")
 def get_gaz(
     date_debut: Optional[date] = Query(None, description="Date de début (inclus)", example="2025-01-01"),
     date_fin: Optional[date] = Query(None, description="Date de fin (inclus)", example="2025-01-31"),
+    token: str = Depends(verify_api_key)
 ):
     if date_debut and date_fin and date_debut > date_fin:
         raise HTTPException(status_code=400, detail="`date_debut` doit être antérieure à `date_fin`")
-
-    conditions = []
-    params = []
+    conditions, params = [], []
     if date_debut:
         conditions.append("Horodatage >= ?")
         params.append(str(date_debut))
     if date_fin:
         conditions.append("Horodatage <= ?")
         params.append(str(date_fin))
-
     where_clause = " AND ".join(conditions) if conditions else None
     data = fetch_data_from_db("ConsoJourGaz", where_clause, params)
     return {"donnees": data}
@@ -150,7 +164,8 @@ def get_gaz(
 def get_temperature_simple(
     date_debut: Optional[date] = Query(None, description="Date de début (inclus)", example="2025-01-01"),
     date_fin: Optional[date] = Query(None, description="Date de fin (inclus)", example="2025-01-31"),
-    piece: Optional[str] = Query(None, description="Nom de la pièce (ex: Salon, Chambre)", example="Salon")
+    piece: Optional[str] = Query(None, description="Nom de la pièce (ex: Salon, Chambre)", example="Salon"),
+    token: str = Depends(verify_api_key)
 ):
     conditions = []
     params = []
@@ -178,7 +193,8 @@ def get_temperature_piece(
     limit: int = Query(100, ge=1, le=1000, description="Nombre max de résultats"),
     offset: int = Query(0, ge=0, description="Décalage pour la pagination"),
     order_by: str = Query("Horodatage", description="Colonne de tri (Horodatage, piece, valeur)"),
-    order_dir: str = Query("asc", description="Ordre de tri : asc ou desc")
+    order_dir: str = Query("asc", description="Ordre de tri : asc ou desc"),
+    token: str = Depends(verify_api_key)
 ):
     try:
         # Convertir date en str isoformat pour sqlite
@@ -205,7 +221,8 @@ def get_electricite(
     limit: int = Query(100, ge=1, le=1000, description="Nombre max de résultats"),
     offset: int = Query(0, ge=0, description="Décalage pour la pagination"),
     order_by: str = Query("Horodatage", description="Colonne de tri (Horodatage, valeur, ID_Batiment)"),
-    order_dir: str = Query("asc", description="Ordre de tri : asc ou desc")
+    order_dir: str = Query("asc", description="Ordre de tri : asc ou desc"),
+    token: str = Depends(verify_api_key)
 ):
     """
     Récupère les données de consommation d’électricité avec filtres, tri et pagination.
