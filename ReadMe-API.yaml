@@ -1,0 +1,151 @@
+openapi: 3.0.3
+info:
+  title: API IDOCS
+  description: >
+    Accès aux données de l'application : Infrastructure de Données pour l’Optimisation et la Centralisation d’un Système IoT.
+  version: "1.0.2"
+servers:
+  - url: http://localhost:8000
+    description: Serveur local de développement
+
+tags:
+  - name: Gaz
+    description: Endpoints relatifs à la consommation de gaz
+  - name: Électricité
+    description: Endpoints relatifs à la consommation d’électricité
+  - name: Température
+    description: Endpoints relatifs à la température intérieure
+
+paths:
+  /gaz/:
+    get:
+      tags:
+        - Gaz
+      summary: Consommation journalière de gaz
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: date_debut
+          required: false
+          schema:
+            type: string
+            format: date
+          description: Date de début (inclus)
+          example: "2025-01-01"
+        - in: query
+          name: date_fin
+          required: false
+          schema:
+            type: string
+            format: date
+          description: Date de fin (inclus)
+          example: "2025-01-31"
+      responses:
+        '200':
+          description: Données récupérées avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DonneesReponse'
+        '401':
+          description: Clé API invalide
+
+  /temperature:
+    get:
+      tags:
+        - Température
+      summary: Température des pièces (filtrable)
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: date_debut
+          schema:
+            type: string
+            format: date
+          description: Date de début (inclus)
+        - in: query
+          name: date_fin
+          schema:
+            type: string
+            format: date
+          description: Date de fin (inclus)
+        - in: query
+          name: piece
+          schema:
+            type: string
+          description: Nom de la pièce
+      responses:
+        '200':
+          description: Données récupérées
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DonneesReponse'
+
+  /electricite:
+    get:
+      tags:
+        - Électricité
+      summary: Consommation horaire d’électricité (filtrable, triable, paginable)
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: start_date
+          schema:
+            type: string
+            format: date
+          description: Date de début
+        - in: query
+          name: end_date
+          schema:
+            type: string
+            format: date
+          description: Date de fin
+        - in: query
+          name: limit
+          schema:
+            type: integer
+          description: Nombre max de résultats
+        - in: query
+          name: offset
+          schema:
+            type: integer
+          description: Décalage pour la pagination
+        - in: query
+          name: order_by
+          schema:
+            type: string
+            enum: [Horodatage, valeur, ID_Batiment]
+          description: Colonne de tri
+        - in: query
+          name: order_dir
+          schema:
+            type: string
+            enum: [asc, desc]
+          description: Ordre de tri
+      responses:
+        '200':
+          description: Données récupérées
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DonneesReponse'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+
+  schemas:
+    DonneesReponse:
+      type: object
+      properties:
+        donnees:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
