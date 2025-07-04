@@ -31,7 +31,7 @@ backend FastAPI pour exposer des points d’accès asynchrones.
         ├── requirements.txt   # Dépendances
         ├── ReadMe-API.yaml    # Documentation API
         ├── .env               # Variables d’environnement
-        ├── ReadMe2.md         # Cette documentation
+        ├── READMe.md         # Cette documentation
         ├── MaBase.db          # Base SQLite
         └── ...
 
