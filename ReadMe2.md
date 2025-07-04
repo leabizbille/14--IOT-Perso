@@ -176,10 +176,10 @@ La clé API est stockée dans un fichier .env :
         API_KEY= 
 Chaque client autorisé doit obtenir cette clé auprès de l’administrateur du projet.
 
- 1) URL de base de l' API FastAPI
+ 3) URL de base de l' API FastAPI
         $BASE_URL = "http://localhost:8000"
 
- 1) Exemple de requête avec authentification
+ 4) Exemple de requête avec authentification
 
 Voici comment appeler l’endpoint /test pour vérifier que votre clé est correcte :
 
@@ -195,7 +195,7 @@ Réponse attendue :
         }
 
 
-## TEST : Endpoint filtré `/gaz/`
+### TEST : Endpoint filtré `/gaz/`
 
         Write-Host "`n=== Test Endpoint `/gaz/` ==="
         $params = @{
@@ -205,7 +205,7 @@ Réponse attendue :
         $response = Invoke-RestMethod -Uri "$BASE_URL/gaz/" -Headers $headers -Method GET -Body $params
         $response
 
-## TEST : Endpoint filtré `/electricite`
+### TEST : Endpoint filtré `/electricite`
 
         Write-Host "`n=== Test Endpoint `/electricite` ==="
         $params = @{
@@ -217,7 +217,7 @@ Réponse attendue :
             order_dir  = "asc"
         }
 
- 1) Comment ça fonctionne côté serveur
+ 5) Comment ça fonctionne côté serveur
 
     ✅ Le décorateur Depends(verify_api_key) vérifie chaque requête.
 
