@@ -75,21 +75,14 @@ pip install visions[type_image_path]==0.7.4
 
 🚀 Bibliothèques pour la gestion asynchrone et les requêtes API :
 
-*asyncio* – Permet d'exécuter du code de manière asynchrone (exécution concurrente). Utile pour interagir avec des API ou gérer des tâches parallèles sans bloquer l'application.
-
-*requests* – Utilisé pour envoyer des requêtes HTTP à des API ou récupérer des pages web.
-  
-*openmeteo-requests* – Wrapper spécifique pour interagir avec l'API météo Open-Meteo.
-
-*requests-cache* – Ajoute un cache aux requêtes requests pour éviter de refaire les mêmes appels API inutiles.
-  
-*retry-requests* – Permet de réessayer automatiquement une requête HTTP en cas d'échec (ex: problème réseau temporaire).
-
-*openmeteo_py* – Client Python pour récupérer des données météorologiques via Open-Meteo.
-  
-*geopy* – Utilisé pour la géolocalisation et le calcul de distances entre lieux.
-
-*holidays* – Permet de récupérer les jours fériés d’un pays donné, utile pour ajuster des prévisions.
+*  *asyncio* – Permet d'exécuter du code de manière asynchrone (exécution concurrente). Utile pour interagir avec des API ou gérer des tâches parallèles sans bloquer l'application.
+*  *requests* – Utilisé pour envoyer des requêtes HTTP à des API ou récupérer des pages web.
+* *openmeteo-requests* – Wrapper spécifique pour interagir avec l'API météo Open-Meteo.
+* *requests-cache* – Ajoute un cache aux requêtes requests pour éviter de refaire les mêmes appels API inutiles.
+* *retry-requests* – Permet de réessayer automatiquement une requête HTTP en cas d'échec (ex: problème réseau temporaire).
+*  *openmeteo_py* – Client Python pour récupérer des données météorologiques via Open-Meteo.
+*  *geopy* – Utilisé pour la géolocalisation et le calcul de distances entre lieux.
+*  *holidays* – Permet de récupérer les jours fériés d’un pays donné, utile pour ajuster des prévisions.
 
 📅 Gestion du temps et des tâches planifiées : 
 
@@ -155,9 +148,7 @@ streamlit run app2.py
 
 * Mettre le fichier `.known_govees` dans le dossier suivant (Windows) :
 
-  ```
-  C:\Users\Lau
-  ```
+C:\Users\Lau
 
 ---------------------------------------------------------------------------------------------------------------
 
@@ -174,35 +165,34 @@ http://localhost:8000/docs
 fastapi utils.api.py
 ```
 
-- ⚙️ 
  1) Type d’authentification
 
 L' API utilise un token de type Bearer pour vérifier l’identité du client.
 Cela signifie que chaque requête doit contenir un en-tête HTTP Authorization :
-Authorization: Bearer {VOTRE_CLÉ_API}
+        Authorization: Bearer {VOTRE_CLÉ_API}
 
  2) Obtenir la clé API
 
 La clé API est stockée dans un fichier .env :
-API_KEY=VotreCléSuperSecrète
+        API_KEY= 
 Chaque client autorisé doit obtenir cette clé auprès de l’administrateur du projet.
 
- 3) URL de base de l' API FastAPI
-$BASE_URL = "http://localhost:8000"
+ 1) URL de base de l' API FastAPI
+        $BASE_URL = "http://localhost:8000"
 
- 4) Exemple de requête avec authentification
+ 1) Exemple de requête avec authentification
 
 Voici comment appeler l’endpoint /test pour vérifier que votre clé est correcte :
 
-Write-Host "`n=== Test Endpoint Protégé `/test` ==="
-$response = Invoke-RestMethod -Uri "$BASE_URL/test" -Headers $headers -Method GET
-$response
+        Write-Host "`n=== Test Endpoint Protégé `/test` ==="
+        $response = Invoke-RestMethod -Uri "$BASE_URL/test" -Headers $headers -Method GET
+        $response
 
 Réponse attendue :
-{
-  "message": "Authentification réussie",
-  "token_utilisé": "VOTRE_CLÉ_API"
-}
+        {
+        "message": "Authentification réussie",
+        "token_utilisé": "VOTRE_CLÉ_API"
+        }
 
 # -------------------------------
 # TEST : Endpoint filtré `/gaz/`
