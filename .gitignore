@@ -3,6 +3,8 @@
 *.pyo
 __pycache__/
 
+debug_page.html
+
 # Environnement virtuel
 myenv/
 .env
@@ -26,7 +28,8 @@ myenv/
 *.xlsx
 
 # Dossiers générés pour les fichiers téléchargés
-1-Documents/
+2-old_version
+donnees_temperature
 
 # Fichiers de tests
 *.cover
