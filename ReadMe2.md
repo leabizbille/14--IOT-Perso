@@ -47,7 +47,7 @@ myenv\Scripts\activate         # Activation sous Windows
 - 🔒 Fichiers à ignorer
 Fichier `.gitignore` pour éviter de versionner les fichiers sensibles ou inutiles (par ex. : `.env`, `__pycache__/`, `*.db`, `*.csv`, etc.).
 
-Workflow Git :
+- Workflow Git :
 ```bash
 git checkout -b feature/ajout-page-meteo       # Nouvelle branche
 git add .
