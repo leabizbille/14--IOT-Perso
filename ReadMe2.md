@@ -1,6 +1,6 @@
 # 🌡️ Application IoT & Data – Données Govee, Énergie & Météo
 
-## 🎯 Résumé du projet & objectifs ----
+## 🎯 Résumé du projet & objectifs
 
 Ce projet a pour objectif de construire un pipeline complet de collecte, traitement, analyse et visualisation 
 de données environnementales, en particulier des données de température issues de capteurs connectés 
@@ -19,21 +19,21 @@ backend FastAPI pour exposer des points d’accès asynchrones.
     Streamlit (interface utilisateur)
 
 ## Structure:
-📂 racine/
- ├── app2.py                # App Streamlit principale
- ├── utils/
- │   ├── api.py             # Backend FastAPI
- |   ├── govee-h5075.py     # Script Govee
- |   ├── Meteo.py           # Script météo
- │   ├── ScrapingGRDF.py
- │   └── ...
- ├── Meteo.py           # Script météo
- ├── requirements.txt   # Dépendances
- ├── ReadMe-API.yaml    # Documentation API
- ├── .env               # Variables d’environnement
- ├── ReadMe2.md         # Cette documentation
- ├── MaBase.db          # Base SQLite
- └── ...
+        📂 racine/
+        ├── app2.py                # App Streamlit principale
+        ├── utils/
+        │   ├── api.py             # Backend FastAPI
+        |   ├── govee-h5075.py     # Script Govee
+        |   ├── Meteo.py           # Script météo
+        │   ├── ScrapingGRDF.py
+        │   └── ...
+        ├── Meteo.py           # Script météo
+        ├── requirements.txt   # Dépendances
+        ├── ReadMe-API.yaml    # Documentation API
+        ├── .env               # Variables d’environnement
+        ├── ReadMe2.md         # Cette documentation
+        ├── MaBase.db          # Base SQLite
+        └── ...
 
 ### 1️⃣ Environnement Python
 
