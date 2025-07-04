@@ -1,6 +1,6 @@
-# 🌡️ Application IoT & Data – Données Govee, Énergie & Météo
+### 🌡️ Application IoT & Data – Données Govee, Énergie & Météo
 
-🎯 Résumé du projet & objectifs
+---- 🎯 Résumé du projet & objectifs ----
 
 Ce projet a pour objectif de construire un pipeline complet de collecte, traitement, analyse et visualisation 
 de données environnementales, en particulier des données de température issues de capteurs connectés 
@@ -10,6 +10,15 @@ Il repose sur une stack orientée Data Science et Data Engineering, combinant de
 Streamlit pour l’interface utilisateur, MongoDB (via GridFS) pour le stockage flexible des fichiers, ainsi qu’un 
 backend FastAPI pour exposer des points d’accès asynchrones.
 
+----Stack technique :
+
+    Python (scripts, data pipelines)
+
+    FastAPI (backend asynchrone)
+
+    MongoDB + GridFS (stockage flexible)
+
+    Streamlit (interface utilisateur)
 
 
 ### 🔧 Serveur FastAPI
@@ -234,3 +243,17 @@ streamlit cache clear            # Nettoyage du cache Streamlit
   ```
   C:\Users\Lau
   ```
+
+ ## Structure 
+📂 racine/
+ ├── app2.py            # App Streamlit principale
+ ├── utils/
+ │   ├── api.py         # Backend FastAPI
+ │   ├── ScrapingGRDF.py
+ │   └── ...
+ ├── govee-h5075.py     # Script Govee
+ ├── Meteo.py           # Script météo
+ ├── requirements.txt   # Dépendances
+ ├── .env               # Variables d’environnement
+ ├── README.md          # Cette doc
+ └── ...
