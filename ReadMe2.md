@@ -1,4 +1,4 @@
-### 🌡️ Application IoT & Data – Données Govee, Énergie & Météo
+# 🌡️ Application IoT & Data – Données Govee, Énergie & Météo
 
 ## 🎯 Résumé du projet & objectifs ----
 
@@ -35,14 +35,14 @@ backend FastAPI pour exposer des points d’accès asynchrones.
  ├── MaBase.db          # Base SQLite
  └── ...
 
-# 1️⃣ Environnement Python
+### 1️⃣ Environnement Python
 
 ```bash
 python -m venv myenv           # Création de l’environnement virtuel
 myenv\Scripts\activate         # Activation sous Windows
 ```
 
-# 2️⃣ Git & Gestion de versions
+### 2️⃣ Git & Gestion de versions
 
 - 🔒 Fichiers à ignorer
 Fichier `.gitignore` pour éviter de versionner les fichiers sensibles ou inutiles (par ex. : `.env`, `__pycache__/`, `*.db`, `*.csv`, etc.).
@@ -57,7 +57,7 @@ git merge feature/ajout-page-meteo             # Fusion
 git push origin main                           # Push vers dépôt distant
 ```
 
-# 3️⃣ Installation des dépendances
+### 3️⃣ Installation des dépendances
 
 - 🔎 Identifier la version Python
 ```bash
@@ -71,7 +71,7 @@ pip install --upgrade pip
 pip install bleak --force-reinstall                 # Pour le Bluetooth Govee
 pip install visions[type_image_path]==0.7.4
 ```
-# 4️⃣ Librairies utilisées (extrait)
+### 4️⃣ Librairies utilisées (extrait)
 
 🚀 Bibliothèques pour la gestion asynchrone et les requêtes API :
 
@@ -109,7 +109,7 @@ pip install visions[type_image_path]==0.7.4
 * *plotly* – Bibliothèque de visualisation interactive pour générer des graphiques dynamiques.
 * *streamlit* – Framework permettant de créer facilement des applications web interactives pour la visualisation de données et l’IA.
 
-# 5️⃣ Gestion et Suivi des packages
+### 5️⃣ Gestion et Suivi des packages
 
 - 📋 Liste des packages installés
 ```bash
@@ -121,14 +121,14 @@ pip list
 pip freeze > 1-Documents/requirements_Sauvegarde.txt
 ```
 
-# 6️⃣ Fichier `.env` & Variables d’environnement
+### 6️⃣ Fichier `.env` & Variables d’environnement
 
 ```bash
 pip install python-dotenv
 ```
 > Le fichier `.env` est à la racine du projet avec les clés sensibles comme `MONGO_URI`, `API_KEY`, etc.
 
-# 7️⃣ Scripts à exécuter
+### 7️⃣ Scripts à exécuter
 
 - 📅 Récupération de données
 ```bash
@@ -144,7 +144,7 @@ python -m utils.ScrapingGRDF     # Récupère les données GRDF (graphiques PNG)
 streamlit run app2.py
 ```
 
-# 8️⃣ 📁 Dossiers spéciaux
+### 8️⃣ 📁 Dossiers spéciaux
 
 * Mettre le fichier `.known_govees` dans le dossier suivant (Windows) :
 
@@ -154,7 +154,7 @@ streamlit run app2.py
 
 ---------------------------------------------------------------------------------------------------------------
 
-# 🔧 FastAPI
+### 🔧 FastAPI
 
 ```bash
 uvicorn utils.api:app --reload --port 8000
