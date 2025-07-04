@@ -147,7 +147,6 @@ streamlit run app2.py
 ### 8️⃣ 📁 Dossiers spéciaux
 
 * Mettre le fichier `.known_govees` dans le dossier suivant (Windows) :
-
 C:\Users\Lau
 
 ---------------------------------------------------------------------------------------------------------------
@@ -189,46 +188,46 @@ Voici comment appeler l’endpoint /test pour vérifier que votre clé est corre
         $response
 
 Réponse attendue :
+
         {
         "message": "Authentification réussie",
         "token_utilisé": "VOTRE_CLÉ_API"
         }
 
-# -------------------------------
-# TEST : Endpoint filtré `/gaz/`
-# -------------------------------
 
-Write-Host "`n=== Test Endpoint `/gaz/` ==="
-$params = @{
-    date_debut = "2025-01-01"
-    date_fin   = "2025-01-31"
-}
-$response = Invoke-RestMethod -Uri "$BASE_URL/gaz/" -Headers $headers -Method GET -Body $params
-$response
+## TEST : Endpoint filtré `/gaz/`
 
-# -------------------------------
-# TEST : Endpoint filtré `/electricite`
-# -------------------------------
+        Write-Host "`n=== Test Endpoint `/gaz/` ==="
+        $params = @{
+            date_debut = "2025-01-01"
+            date_fin   = "2025-01-31"
+        }
+        $response = Invoke-RestMethod -Uri "$BASE_URL/gaz/" -Headers $headers -Method GET -Body $params
+        $response
 
-Write-Host "`n=== Test Endpoint `/electricite` ==="
-$params = @{
-    start_date = "2025-01-01"
-    end_date   = "2025-01-31"
-    limit      = 10
-    offset     = 0
-    order_by   = "Horodatage"
-    order_dir  = "asc"
-}
+## TEST : Endpoint filtré `/electricite`
 
- 5) Comment ça fonctionne côté serveur
+        Write-Host "`n=== Test Endpoint `/electricite` ==="
+        $params = @{
+            start_date = "2025-01-01"
+            end_date   = "2025-01-31"
+            limit      = 10
+            offset     = 0
+            order_by   = "Horodatage"
+            order_dir  = "asc"
+        }
+
+ 1) Comment ça fonctionne côté serveur
 
     ✅ Le décorateur Depends(verify_api_key) vérifie chaque requête.
+
     ✅ Si la clé est correcte, la requête est traitée normalement.
+
     ✅ Si la clé n’est pas valide, FastAPI renvoie :
 
-{
-  "detail": "Clé API invalide"
-}
+        {
+        "detail": "Clé API invalide"
+        }
 avec un code HTTP 401 Unauthorized.
 
  6) Libérer le port 8000 sous Windows, si besoin.
