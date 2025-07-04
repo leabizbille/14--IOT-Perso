@@ -3,7 +3,9 @@
 *.pyo
 __pycache__/
 
+# Fichiers HTML temporaires de debug
 debug_page.html
+utils/debug_page.html
 
 # Environnement virtuel
 myenv/
