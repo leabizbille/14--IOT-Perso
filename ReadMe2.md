@@ -75,14 +75,21 @@ pip install visions[type_image_path]==0.7.4
 
 🚀 Bibliothèques pour la gestion asynchrone et les requêtes API :
 
-  *asyncio* – Permet d'exécuter du code de manière asynchrone (exécution concurrente). Utile pour interagir avec des API ou gérer des tâches parallèles sans bloquer l'application.
-  *requests* – Utilisé pour envoyer des requêtes HTTP à des API ou récupérer des pages web.
-  *openmeteo-requests* – Wrapper spécifique pour interagir avec l'API météo Open-Meteo.
-  *requests-cache* – Ajoute un cache aux requêtes requests pour éviter de refaire les mêmes appels API inutiles.
-  *retry-requests* – Permet de réessayer automatiquement une requête HTTP en cas d'échec (ex: problème réseau temporaire).
-  *openmeteo_py* – Client Python pour récupérer des données météorologiques via Open-Meteo.
-  *geopy* – Utilisé pour la géolocalisation et le calcul de distances entre lieux.
-  *holidays* – Permet de récupérer les jours fériés d’un pays donné, utile pour ajuster des prévisions.
+*asyncio* – Permet d'exécuter du code de manière asynchrone (exécution concurrente). Utile pour interagir avec des API ou gérer des tâches parallèles sans bloquer l'application.
+
+*requests* – Utilisé pour envoyer des requêtes HTTP à des API ou récupérer des pages web.
+  
+*openmeteo-requests* – Wrapper spécifique pour interagir avec l'API météo Open-Meteo.
+
+*requests-cache* – Ajoute un cache aux requêtes requests pour éviter de refaire les mêmes appels API inutiles.
+  
+*retry-requests* – Permet de réessayer automatiquement une requête HTTP en cas d'échec (ex: problème réseau temporaire).
+
+*openmeteo_py* – Client Python pour récupérer des données météorologiques via Open-Meteo.
+  
+*geopy* – Utilisé pour la géolocalisation et le calcul de distances entre lieux.
+
+*holidays* – Permet de récupérer les jours fériés d’un pays donné, utile pour ajuster des prévisions.
 
 📅 Gestion du temps et des tâches planifiées : 
 
