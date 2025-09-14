@@ -141,7 +141,7 @@ python -m utils.ScrapingGRDF     # Récupère les données GRDF (graphiques PNG)
 - 🚀 Lancement de l'application web (Streamlit)
 
 ```bash
-streamlit run app2.py
+streamlit run app2.py  --server.port 8502
 ```
 
 ### 8️⃣ 📁 Dossiers spéciaux
